@@ -1,7 +1,4 @@
-<?php
-// Página de error personalizada en caso de un error 404
-http_response_code(404);
-?>
+
 
 <!DOCTYPE html>
 <html lang="es">
