@@ -51,12 +51,13 @@
     <div class="welcome-container">
         <h1 id="welcome-text">¡Bienvenido!</h1>
         <p>Gracias por visitar nuestra página.</p>
-        <button class="btn btn-primary" onclick="changeMessage()">Haz clic aquí</button>
+        <button class="btn btn-primary" onclick="changepage()">Ir a Admin</button>
     </div>
 
     <script>
-        function changeMessage() {
-            document.getElementById("welcome-text").innerText = "¡Esperamos que disfrutes tu visita!";
+        function changepage() {
+            // Redirigir al usuario a la página de error
+        window.location.href = "/errorpage.php";
         }
     </script>
 
