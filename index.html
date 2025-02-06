@@ -161,64 +161,76 @@
         </div>
     </nav>
 
-    <div class="login-container text-center">
-        <!-- Breadcrumbs dinámicos -->
-        <nav>
-            <ol class="breadcrumb" id="breadcrumb-container"></ol>
-        </nav>
-        <h3>Iniciar Sesión</h3>
-        <form id="loginForm" novalidate>
-            <div class="form-group">
-                <input type="text" id="username" name="username" placeholder=" " required maxlength="60"
-                    oninput="validateUsername()"
-                    pattern="^[A-Za-z0-9]+$|^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com)$"
-                    title="Solo letras y números o correos @gmail.com / @hotmail.com">
-                <label for="username">Ingrese su usuario</label>
-                <div class="invalid-feedback">Ingrese un usuario válido o un correo @gmail.com/@hotmail.com.</div>
-            </div>
-    
-            <div class="form-group">
-                <input type="password" id="password" name="password" placeholder=" " required maxlength="40"
-                    oninput="validatePassword()"
-                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
-                    title="Mínimo 8 caracteres, al menos una letra y un número.">
-                <label for="password">Ingrese su contraseña</label>
-                <div class="invalid-feedback">Mínimo 8 caracteres, al menos una letra y un número.</div>
-            </div>
-    
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
-        </form>
-    </div>
+  <!-- Contenedor del login -->
+<div class="login-container text-center">
+    <nav>
+        <ol class="breadcrumb" id="breadcrumb-container"></ol>
+    </nav>
+    <h3>Iniciar Sesión</h3>
+    <form id="loginForm" novalidate>
+        <div class="form-group">
+            <input type="text" id="username" name="username" placeholder=" " required maxlength="60"
+                oninput="validateUsername()"
+                pattern="^[A-Za-z0-9]+$|^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com)$"
+                title="Solo letras y números o correos @gmail.com / @hotmail.com">
+            <label for="username">Ingrese su usuario</label>
+            <div class="invalid-feedback">Ingrese un usuario válido o un correo @gmail.com/@hotmail.com.</div>
+        </div>
+
+        <div class="form-group">
+            <input type="password" id="password" name="password" placeholder=" " required maxlength="40"
+                oninput="validatePassword()"
+                pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+                title="Mínimo 8 caracteres, al menos una letra y un número.">
+            <label for="password">Ingrese su contraseña</label>
+            <div class="invalid-feedback">Mínimo 8 caracteres, al menos una letra y un número.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+    </form>
+</div>
     
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-
-function validateUsername() {
+    function validateUsername() {
         let usernameInput = document.getElementById("username");
         let regex = /^[A-Za-z0-9]+$|^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com)$/;
+        let trimmedValue = usernameInput.value.trim(); // Elimina espacios al inicio y final
 
-        if (!regex.test(usernameInput.value)) {
+        if (!regex.test(trimmedValue)) {
             usernameInput.setCustomValidity("Ingrese un usuario válido o un correo @gmail.com/@hotmail.com.");
         } else {
             usernameInput.setCustomValidity("");
         }
+        usernameInput.value = trimmedValue; // Remueve espacios en blanco automáticamente
     }
 
     function validatePassword() {
         let passwordInput = document.getElementById("password");
         let regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        let trimmedValue = passwordInput.value.trim(); // Elimina espacios
 
-        if (!regex.test(passwordInput.value)) {
+        if (!regex.test(trimmedValue)) {
             passwordInput.setCustomValidity("Mínimo 8 caracteres, al menos una letra y un número.");
         } else {
             passwordInput.setCustomValidity("");
         }
+        passwordInput.value = trimmedValue; // Remueve espacios en blanco automáticamente
     }
 
     document.getElementById("loginForm").addEventListener("submit", function(event) {
         validateUsername();
         validatePassword();
+
+        let username = document.getElementById("username").value.trim();
+        let password = document.getElementById("password").value.trim();
+
+        if (username === "" || password === "") {
+            alert("Los campos no pueden estar vacíos o contener solo espacios.");
+            event.preventDefault();
+            return;
+        }
 
         if (!this.checkValidity()) {
             event.preventDefault(); // Bloquea el envío si hay errores
