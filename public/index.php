@@ -1,47 +1,43 @@
-<?php
-declare(strict_types=1);
-
+use Phalcon\Mvc\View;
+use Phalcon\Loader;
 use Phalcon\Di\FactoryDefault;
+use Phalcon\Mvc\Application;
 
-error_reporting(E_ALL);
-
+// Define paths relativos
 define('BASE_PATH', dirname(__DIR__));
-define('APP_PATH', BASE_PATH . '/app');
+define('APP_PATH', __DIR__ . '/app');
+
+// Autocarga de archivos
+require BASE_PATH . '/vendor/autoload.php'; // Si usas Composer
+
+// Cargar las rutas
+$loader = new Loader();
+$loader->registerDirs(
+    [
+        APP_PATH . '/controllers/',
+        APP_PATH . '/models/',
+    ]
+);
+$loader->register();
+
+// Configurar el servicio de vistas
+$di = new FactoryDefault();
+
+$di->set(
+    'view',
+    function () {
+        $view = new View();
+        $view->setViewsDir(__DIR__ . '/app/views/');
+        return $view;
+    }
+);
+
+// Iniciar la aplicación
+$app = new Application($di);
 
 try {
-    /**
-     * The FactoryDefault Dependency Injector automatically registers
-     * the services that provide a full stack framework.
-     */
-    $di = new FactoryDefault();
-
-    /**
-     * Read services
-     */
-    include APP_PATH . '/config/services.php';
-
-    /**
-     * Handle routes
-     */
-    include APP_PATH . '/config/router.php';
-
-    /**
-     * Get config service for use in inline setup below
-     */
-    $config = $di->getConfig();
-
-    /**
-     * Include Autoloader
-     */
-    include APP_PATH . '/config/loader.php';
-
-    /**
-     * Handle the request
-     */
-    $application = new \Phalcon\Mvc\Application($di);
-
-    echo $application->handle($_SERVER['REQUEST_URI'])->getContent();
+    $response = $app->handle($_SERVER['REQUEST_URI']);
+    $response->send();
 } catch (\Exception $e) {
-    echo $e->getMessage() . '<br>';
-    echo '<pre>' . $e->getTraceAsString() . '</pre>';
+    echo 'Exception: ', $e->getMessage();
 }
