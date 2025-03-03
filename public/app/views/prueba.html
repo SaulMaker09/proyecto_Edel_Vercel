@@ -3,49 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD con Bootstrap y Animaciones</title>
+    <title>CRUD Futurista</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-    font-family: 'Arial', sans-serif;
-}
-
-.table-hover tbody tr:hover {
-    background-color: #f1f1f1;
-    transition: 0.3s;
-}
-
-/* Animación para los modales */
-.modal-content {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
+            font-family: 'Arial', sans-serif;
+            background: #121212;
+            color: #fff;
+        }
+        .btn-custom {
+            font-size: 1.2rem;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+        .table-hover tbody tr:hover {
+            background-color: #1e1e1e;
+            transition: 0.3s;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0f0;
+            color: #000;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            font-size: 1.2rem;
+        }
+        .notification.error { background: #f00; color: #fff; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="bg-light">
-
+<body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Gestión de Usuarios</h1>
-
-        <!-- Botón de agregar usuario -->
         <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUsuario">Agregar Usuario</button>
+            <button class="btn btn-primary btn-custom" onclick="abrirModal()">Agregar Usuario</button>
         </div>
-
-        <!-- Tabla de usuarios -->
         <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-dark">
+            <table class="table table-dark table-hover">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Email</th>
-                        <th>Edad</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -53,141 +63,64 @@
             </table>
         </div>
     </div>
-
-    <!-- Modal de usuario (Agregar/Editar) -->
-    <div class="modal fade" id="modalUsuario" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="usuarioId">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="usuarioNombre">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="usuarioEmail">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Edad</label>
-                        <input type="number" class="form-control" id="usuarioEdad">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-success" id="guardarUsuario">Guardar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de vista previa -->
-    <div class="modal fade" id="modalVistaPrevia" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Vista Previa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Nombre:</strong> <span id="previewNombre"></span></p>
-                    <p><strong>Email:</strong> <span id="previewEmail"></span></p>
-                    <p><strong>Edad:</strong> <span id="previewEdad"></span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="notification" id="notificacion"></div>
     <script>
         const API_URL = "https://ghostwhite-wasp-985227.hostingersite.com/api.php";
-
-document.addEventListener("DOMContentLoaded", () => {
-    cargarUsuarios();
-});
-
-async function cargarUsuarios() {
-    const respuesta = await fetch(API_URL);
-    const usuarios = await respuesta.json();
-    const tabla = document.getElementById("tablaUsuarios");
-    tabla.innerHTML = "";
-
-    usuarios.forEach(user => {
-        tabla.innerHTML += `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.nombre}</td>
-                <td>${user.email}</td>
-                <td>${user.edad}</td>
-                <td>
-                    <button class="btn btn-info btn-sm" onclick="verVistaPrevia(${user.id})">👁</button>
-                    <button class="btn btn-warning btn-sm" onclick="editarUsuario(${user.id})">✏</button>
-                    <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${user.id})">🗑</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-async function guardarUsuario() {
-    const id = document.getElementById("usuarioId").value;
-    const nombre = document.getElementById("usuarioNombre").value;
-    const email = document.getElementById("usuarioEmail").value;
-    const edad = document.getElementById("usuarioEdad").value;
-
-    const metodo = id ? "PUT" : "POST";
-    const datos = { id, nombre, email, edad };
-
-    await fetch(API_URL, {
-        method: metodo,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datos)
-    });
-
-    document.querySelector("#modalUsuario .btn-close").click();
-    cargarUsuarios();
-}
-
-async function editarUsuario(id) {
-    const respuesta = await fetch(`${API_URL}?id=${id}`);
-    const usuario = await respuesta.json();
-
-    document.getElementById("usuarioId").value = usuario.id;
-    document.getElementById("usuarioNombre").value = usuario.nombre;
-    document.getElementById("usuarioEmail").value = usuario.email;
-    document.getElementById("usuarioEdad").value = usuario.edad;
-
-    new bootstrap.Modal(document.getElementById("modalUsuario")).show();
-}
-
-async function eliminarUsuario(id) {
-    if (confirm("¿Seguro que deseas eliminar este usuario?")) {
-        await fetch(API_URL, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
-        });
+        function abrirModal() {
+            let nombre = prompt("Nombre del usuario:");
+            let email = prompt("Email del usuario:");
+            if (nombre && email) {
+                let usuario = { nombre, email };
+                fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(usuario)
+                }).then(() => {
+                    mostrarNotificacion("Usuario agregado con éxito", false);
+                    cargarUsuarios();
+                });
+            }
+        }
+        function mostrarNotificacion(mensaje, esError) {
+            let notificacion = document.getElementById("notificacion");
+            notificacion.textContent = mensaje;
+            notificacion.className = esError ? "notification error" : "notification";
+            notificacion.style.display = "block";
+            setTimeout(() => { notificacion.style.display = "none"; }, 3000);
+        }
+        function cargarUsuarios() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(usuarios => {
+                    let tabla = document.getElementById("tablaUsuarios");
+                    tabla.innerHTML = "";
+                    usuarios.forEach(user => {
+                        let fila = `<tr>
+                            <td>${user.id}</td>
+                            <td>${user.nombre}</td>
+                            <td>${user.email}</td>
+                            <td>
+                                <button class='btn btn-warning btn-sm' onclick='editarUsuario(${user.id})'>✏</button>
+                                <button class='btn btn-danger btn-sm' onclick='eliminarUsuario(${user.id})'>🗑</button>
+                            </td>
+                        </tr>`;
+                        tabla.innerHTML += fila;
+                    });
+                });
+        }
+        function eliminarUsuario(id) {
+            if (confirm("¿Seguro que deseas eliminar este usuario?")) {
+                fetch(API_URL, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id })
+                }).then(() => {
+                    mostrarNotificacion("Usuario eliminado", false);
+                    cargarUsuarios();
+                });
+            }
+        }
         cargarUsuarios();
-    }
-}
-
-async function verVistaPrevia(id) {
-    const respuesta = await fetch(`${API_URL}?id=${id}`);
-    const usuario = await respuesta.json();
-
-    document.getElementById("previewNombre").textContent = usuario.nombre;
-    document.getElementById("previewEmail").textContent = usuario.email;
-    document.getElementById("previewEdad").textContent = usuario.edad;
-
-    new bootstrap.Modal(document.getElementById("modalVistaPrevia")).show();
-}
-
-document.getElementById("guardarUsuario").addEventListener("click", guardarUsuario);
-
     </script>
 </body>
 </html>
