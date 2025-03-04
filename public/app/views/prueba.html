@@ -223,10 +223,20 @@ function limpiarError(input) {
 
         async function guardarUsuario() {
             const id = document.getElementById("usuarioId").value;
-            const nombre = document.getElementById("usuarioNombre").value;
-            const email = document.getElementById("usuarioEmail").value;
-            const edad = document.getElementById("usuarioEdad").value;
+            const nombre = document.getElementById("usuarioNombre").value.trim();
+            const email = document.getElementById("usuarioEmail").value.trim();
+            const edad = document.getElementById("usuarioEdad").value.trim();
             const metodo = id ? "PUT" : "POST";
+            // Validación de campos vacíos
+    if (!nombre || !email || !edad) {
+        Swal.fire({
+            title: "Error",
+            text: "Todos los campos son obligatorios",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return; // Detiene la ejecución si hay campos vacíos
+    }
 
             try {
                 await fetch(API_URL, {
