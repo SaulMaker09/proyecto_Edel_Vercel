@@ -7,116 +7,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background: #0f172a;
-            color: white;
-            font-family: 'Arial', sans-serif;
-        }
-
-        .navbar {
-            background: #1e293b;
-        }
-        .navbar .nav-link {
-            color: white;
-            transition: 0.3s;
-        }
-        .navbar .nav-link:hover {
-            color: #4f46e5;
-        }
-        .table-hover tbody tr:hover {
-            background-color: #1e293b;
-            transition: 0.3s;
-        }
-        .modal-content {
-            background: #1e293b;
-            color: white;
-            border-radius: 10px;
-        }
-        .btn-primary {
-            background: #6366f1;
-            border: none;
-        }
-        .btn-primary:hover {
-            background: #4f46e5;
-        }
-        .notification {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            opacity: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .notification.show {
-            opacity: 1;
-        }
-        .notification.success {
-            background: #10b981;
-        }
-        .notification.error {
-            background: #ef4444;
-        }
-
-        .table1 {
-            border-radius: 10%;
-        }
-
-        .is-invalid {
-        border-color: #dc3545;
-    }
-    .invalid-feedback {
-        display: block;
-        color: #dc3545;
-        font-size: 0.875em;
-    }
+        body { background: #0f172a; color: white; font-family: 'Arial', sans-serif; }
+        .navbar { background: #1e293b; }
+        .navbar .nav-link { color: white; transition: 0.3s; }
+        .navbar .nav-link:hover { color: #4f46e5; }
+        .table-hover tbody tr:hover { background-color: #1e293b; transition: 0.3s; }
+        .modal-content { background: #1e293b; color: white; border-radius: 10px; }
+        .btn-primary { background: #6366f1; border: none; }
+        .btn-primary:hover { background: #4f46e5; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light text-white">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Gestion</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="/">Gestión</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"> 
-                        <a class="nav-link" href="/index.html">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/public/vistasp/home.html">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../app/views/index/hola.html">Hola Mundo</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/public/app/views/prueba.html">CRUD</a>
-                    </li> 
-                </ul>
-            </div>
         </div>
     </nav>
 
     <div class="container mt-5">
         <h1 class="text-center mb-4">Gestión de Usuarios</h1>
-        <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-primary" onclick="abrirModal()">Agregar Usuario</button>
-        </div>
+        <button class="btn btn-primary mb-3" onclick="abrirModal()">Agregar Usuario</button>
         <div class="table-responsive">
-            <table class="table table-hover table-dark table-bordered table1">
+            <table class="table table-hover table-dark table-bordered">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Edad</th>
+                        <th>Fecha Nacimiento</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -146,6 +71,18 @@
                         <label class="form-label">Edad</label>
                         <input type="number" class="form-control" id="usuarioEdad" required>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" id="usuarioFechaNacimiento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="usuarioTelefono" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="usuarioDireccion" required>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -161,43 +98,8 @@
 
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
-    
-
-function mostrarMensajeError(input, mensaje) {
-    let error = input.nextElementSibling;
-    if (!error || !error.classList.contains("invalid-feedback")) {
-        error = document.createElement("div");
-        error.classList.add("invalid-feedback");
-        input.parentNode.appendChild(error);
-    }
-    error.textContent = mensaje;
-}
-
-function limpiarError(input) {
-    input.classList.remove("is-invalid");
-    let error = input.nextElementSibling;
-    if (error && error.classList.contains("invalid-feedback")) {
-        error.remove();
-    }
-}
-
-
-        function mostrarNotificacion(mensaje, tipo) {
-            Swal.fire({
-                title: mensaje,
-                icon: tipo,
-                timer: 3000,
-                showConfirmButton: false,
-                toast: true,
-                position: "top-end"
-            });
-        }
-
         function abrirModal() {
-            document.getElementById("usuarioId").value = "";
-            document.getElementById("usuarioNombre").value = "";
-            document.getElementById("usuarioEmail").value = "";
-            document.getElementById("usuarioEdad").value = "";
+            document.querySelectorAll("#modalUsuario input").forEach(input => input.value = "");
             new bootstrap.Modal(document.getElementById("modalUsuario")).show();
         }
 
@@ -213,9 +115,12 @@ function limpiarError(input) {
                         <td>${user.nombre}</td>
                         <td>${user.email}</td>
                         <td>${user.edad}</td>
+                        <td>${user.fechaNacimiento}</td>
+                        <td>${user.telefono}</td>
+                        <td>${user.direccion}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="editarUsuario(${user.id})">Editar ✏</button>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${user.id})">Eliminar 🗑</button>
+                            <button class="btn btn-warning btn-sm" onclick="editarUsuario(${user.id})">✏</button>
+                            <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${user.id})">🗑</button>
                         </td>
                     </tr>`;
             });
@@ -226,67 +131,41 @@ function limpiarError(input) {
             const nombre = document.getElementById("usuarioNombre").value.trim();
             const email = document.getElementById("usuarioEmail").value.trim();
             const edad = document.getElementById("usuarioEdad").value.trim();
+            const fechaNacimiento = document.getElementById("usuarioFechaNacimiento").value;
+            const telefono = document.getElementById("usuarioTelefono").value.trim();
+            const direccion = document.getElementById("usuarioDireccion").value.trim();
             const metodo = id ? "PUT" : "POST";
-            // Validación de campos vacíos
-    if (!nombre || !email || !edad) {
-        Swal.fire({
-            title: "Error",
-            text: "Todos los campos son obligatorios",
-            icon: "error",
-            confirmButtonText: "OK"
-        });
-        return; // Detiene la ejecución si hay campos vacíos
-    }
+
+            if (!nombre || !email || !edad || !fechaNacimiento || !telefono || !direccion) {
+                Swal.fire("Error", "Todos los campos son obligatorios", "error");
+                return;
+            }
 
             try {
                 await fetch(API_URL, {
                     method: metodo,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, nombre, email, edad })
+                    body: JSON.stringify({ id, nombre, email, edad, fechaNacimiento, telefono, direccion })
                 });
                 document.querySelector("#modalUsuario .btn-close").click();
-                mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+                Swal.fire("Éxito", "Usuario guardado correctamente", "success");
                 cargarUsuarios();
             } catch (error) {
-                mostrarNotificacion("Error al guardar usuario ❌", "error");
+                Swal.fire("Error", "No se pudo guardar el usuario", "error");
             }
         }
 
         async function editarUsuario(id) {
             const respuesta = await fetch(`${API_URL}?id=${id}`);
-            const usuario = await respuesta.json();
-            document.getElementById("usuarioId").value = usuario.id;
-            document.getElementById("usuarioNombre").value = usuario.nombre;
-            document.getElementById("usuarioEmail").value = usuario.email;
-            document.getElementById("usuarioEdad").value = usuario.edad;
+            const user = await respuesta.json();
+            document.getElementById("usuarioId").value = user.id;
+            document.getElementById("usuarioNombre").value = user.nombre;
+            document.getElementById("usuarioEmail").value = user.email;
+            document.getElementById("usuarioEdad").value = user.edad;
+            document.getElementById("usuarioFechaNacimiento").value = user.fechaNacimiento;
+            document.getElementById("usuarioTelefono").value = user.telefono;
+            document.getElementById("usuarioDireccion").value = user.direccion;
             new bootstrap.Modal(document.getElementById("modalUsuario")).show();
-        }
-
-        async function eliminarUsuario(id) {
-            Swal.fire({
-                title: "¿Seguro que deseas eliminar este usuario?",
-                text: "Esta acción no se puede deshacer",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar"
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await fetch(API_URL, {
-                            method: "DELETE",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ id })
-                        });
-                        mostrarNotificacion("Usuario eliminado con éxito ✅", "success");
-                        cargarUsuarios();
-                    } catch (error) {
-                        mostrarNotificacion("Error al eliminar usuario ❌", "error");
-                    }
-                }
-            });
         }
 
         document.getElementById("guardarUsuario").addEventListener("click", guardarUsuario);
