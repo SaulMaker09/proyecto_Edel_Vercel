@@ -152,6 +152,17 @@
 
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
+        document.getElementById("guardarUsuario").addEventListener("click", function () {
+            let nombre = document.getElementById("usuarioNombre").value.trim();
+            let email = document.getElementById("usuarioEmail").value.trim();
+            let edad = document.getElementById("usuarioEdad").value.trim();
+
+        if (nombre === "" || email === "" || edad === "") {
+            alert("Por favor, completa todos los campos.");
+            return;
+        }
+    });
+
         function mostrarNotificacion(mensaje, tipo) {
             Swal.fire({
                 title: mensaje,
