@@ -66,6 +66,15 @@
         .table1 {
             border-radius: 10%;
         }
+
+        .is-invalid {
+        border-color: #dc3545;
+    }
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875em;
+    }
     </style>
 </head>
 <body>
@@ -153,15 +162,70 @@
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
         document.getElementById("guardarUsuario").addEventListener("click", function () {
-            let nombre = document.getElementById("usuarioNombre").value.trim();
-            let email = document.getElementById("usuarioEmail").value.trim();
-            let edad = document.getElementById("usuarioEdad").value.trim();
+    let nombre = document.getElementById("usuarioNombre");
+    let email = document.getElementById("usuarioEmail");
+    let edad = document.getElementById("usuarioEdad");
+    let valido = true;
 
-        if (nombre === "" || email === "" || edad === "") {
-            alert("Por favor, completa todos los campos.");
-            return;
-        }
-    });
+    // Validar Nombre
+    if (nombre.value.trim() === "") {
+        nombre.classList.add("is-invalid");
+        mostrarMensajeError(nombre, "El nombre es obligatorio.");
+        valido = false;
+    } else {
+        limpiarError(nombre);
+    }
+
+    // Validar Email
+    if (email.value.trim() === "") {
+        email.classList.add("is-invalid");
+        mostrarMensajeError(email, "El email es obligatorio.");
+        valido = false;
+    } else if (!email.value.includes("@")) {
+        email.classList.add("is-invalid");
+        mostrarMensajeError(email, "Debe ser un email válido.");
+        valido = false;
+    } else {
+        limpiarError(email);
+    }
+
+    // Validar Edad
+    if (edad.value.trim() === "") {
+        edad.classList.add("is-invalid");
+        mostrarMensajeError(edad, "La edad es obligatoria.");
+        valido = false;
+    } else if (isNaN(edad.value) || edad.value <= 0) {
+        edad.classList.add("is-invalid");
+        mostrarMensajeError(edad, "Debe ser un número válido.");
+        valido = false;
+    } else {
+        limpiarError(edad);
+    }
+
+    // Si todo está validado, se ejecuta la función para guardar el usuario
+    if (valido) {
+        guardarUsuario();
+    }
+});
+
+function mostrarMensajeError(input, mensaje) {
+    let error = input.nextElementSibling;
+    if (!error || !error.classList.contains("invalid-feedback")) {
+        error = document.createElement("div");
+        error.classList.add("invalid-feedback");
+        input.parentNode.appendChild(error);
+    }
+    error.textContent = mensaje;
+}
+
+function limpiarError(input) {
+    input.classList.remove("is-invalid");
+    let error = input.nextElementSibling;
+    if (error && error.classList.contains("invalid-feedback")) {
+        error.remove();
+    }
+}
+
 
         function mostrarNotificacion(mensaje, tipo) {
             Swal.fire({
