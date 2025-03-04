@@ -161,40 +161,7 @@
 
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
-        async function guardarUsuario() {
-    const id = document.getElementById("usuarioId").value;
-    const nombre = document.getElementById("usuarioNombre").value.trim();
-    const email = document.getElementById("usuarioEmail").value.trim();
-    const edad = document.getElementById("usuarioEdad").value.trim();
-
-    // Validación de campos vacíos
-    if (nombre === "" || email === "" || edad === "") {
-        Swal.fire({
-            title: "Error",
-            text: "Todos los campos son obligatorios",
-            icon: "error",
-            confirmButtonText: "OK"
-        });
-        return; // Detiene la ejecución
-    }
-
-    const metodo = id ? "PUT" : "POST";
-
-    try {
-        await fetch(API_URL, {
-            method: metodo,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, nombre, email, edad })
-        });
-
-        document.querySelector("#modalUsuario .btn-close").click();
-        mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-        cargarUsuarios();
-    } catch (error) {
-        mostrarNotificacion("Error al guardar usuario ❌", "error");
-    }
-}
-
+    
 
 function mostrarMensajeError(input, mensaje) {
     let error = input.nextElementSibling;
@@ -254,7 +221,40 @@ function limpiarError(input) {
             });
         }
 
-        
+        async function guardarUsuario() {
+    const id = document.getElementById("usuarioId").value;
+    const nombre = document.getElementById("usuarioNombre").value.trim();
+    const email = document.getElementById("usuarioEmail").value.trim();
+    const edad = document.getElementById("usuarioEdad").value.trim();
+
+    // Validación de campos vacíos
+    if (!nombre || !email || !edad) {
+        Swal.fire({
+            title: "Error",
+            text: "Todos los campos son obligatorios",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return; // Detiene la ejecución si hay campos vacíos
+    }
+
+    const metodo = id ? "PUT" : "POST";
+
+    try {
+        await fetch(API_URL, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, nombre, email, edad })
+        });
+
+        document.querySelector("#modalUsuario .btn-close").click();
+        mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+        cargarUsuarios();
+    } catch (error) {
+        mostrarNotificacion("Error al guardar usuario ❌", "error");
+    }
+}
+
 
         async function editarUsuario(id) {
             const respuesta = await fetch(`${API_URL}?id=${id}`);
