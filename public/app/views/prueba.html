@@ -38,7 +38,6 @@
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Email</th>
-                        <th>Edad</th>
                         <th>Fecha Nacimiento</th>
                         <th>Teléfono</th>
                         <th>Dirección</th>
@@ -67,10 +66,7 @@
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" id="usuarioEmail" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Edad</label>
-                        <input type="number" class="form-control" id="usuarioEdad" required>
-                    </div>
+                    
                     <div class="mb-3">
                         <label class="form-label">Fecha de Nacimiento</label>
                         <input type="date" class="form-control" id="usuarioFechaNacimiento" required>
@@ -114,7 +110,8 @@
                         <td>${user.id}</td>
                         <td>${user.nombre}</td>
                         <td>${user.email}</td>
-                        <td>${user.edad}</td>
+                       
+                    
                         <td>${user.fechaNacimiento}</td>
                         <td>${user.telefono}</td>
                         <td>${user.direccion}</td>
@@ -130,13 +127,12 @@
             const id = document.getElementById("usuarioId").value;
             const nombre = document.getElementById("usuarioNombre").value.trim();
             const email = document.getElementById("usuarioEmail").value.trim();
-            const edad = document.getElementById("usuarioEdad").value.trim();
             const fechaNacimiento = document.getElementById("usuarioFechaNacimiento").value;
             const telefono = document.getElementById("usuarioTelefono").value.trim();
             const direccion = document.getElementById("usuarioDireccion").value.trim();
             const metodo = id ? "PUT" : "POST";
 
-            if (!nombre || !email || !edad || !fechaNacimiento || !telefono || !direccion) {
+            if (!nombre || !email || !fechaNacimiento || !telefono || !direccion) {
                 Swal.fire("Error", "Todos los campos son obligatorios", "error");
                 return;
             }
@@ -145,7 +141,7 @@
                 await fetch(API_URL, {
                     method: metodo,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, nombre, email, edad, fechaNacimiento, telefono, direccion })
+                    body: JSON.stringify({ id, nombre, email, fechaNacimiento, telefono, direccion })
                 });
                 document.querySelector("#modalUsuario .btn-close").click();
                 Swal.fire("Éxito", "Usuario guardado correctamente", "success");
@@ -161,7 +157,6 @@
             document.getElementById("usuarioId").value = user.id;
             document.getElementById("usuarioNombre").value = user.nombre;
             document.getElementById("usuarioEmail").value = user.email;
-            document.getElementById("usuarioEdad").value = user.edad;
             document.getElementById("usuarioFechaNacimiento").value = user.fechaNacimiento;
             document.getElementById("usuarioTelefono").value = user.telefono;
             document.getElementById("usuarioDireccion").value = user.direccion;
