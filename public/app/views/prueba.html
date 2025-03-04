@@ -161,52 +161,40 @@
 
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
-        document.getElementById("guardarUsuario").addEventListener("click", function () {
-    let nombre = document.getElementById("usuarioNombre");
-    let email = document.getElementById("usuarioEmail");
-    let edad = document.getElementById("usuarioEdad");
-    let valido = true;
+        async function guardarUsuario() {
+    const id = document.getElementById("usuarioId").value;
+    const nombre = document.getElementById("usuarioNombre").value.trim();
+    const email = document.getElementById("usuarioEmail").value.trim();
+    const edad = document.getElementById("usuarioEdad").value.trim();
 
-    // Validar Nombre
-    if (nombre.value.trim() === "") {
-        nombre.classList.add("is-invalid");
-        mostrarMensajeError(nombre, "El nombre es obligatorio.");
-        valido = false;
-    } else {
-        limpiarError(nombre);
+    // Validación de campos vacíos
+    if (nombre === "" || email === "" || edad === "") {
+        Swal.fire({
+            title: "Error",
+            text: "Todos los campos son obligatorios",
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+        return; // Detiene la ejecución
     }
 
-    // Validar Email
-    if (email.value.trim() === "") {
-        email.classList.add("is-invalid");
-        mostrarMensajeError(email, "El email es obligatorio.");
-        valido = false;
-    } else if (!email.value.includes("@")) {
-        email.classList.add("is-invalid");
-        mostrarMensajeError(email, "Debe ser un email válido.");
-        valido = false;
-    } else {
-        limpiarError(email);
-    }
+    const metodo = id ? "PUT" : "POST";
 
-    // Validar Edad
-    if (edad.value.trim() === "") {
-        edad.classList.add("is-invalid");
-        mostrarMensajeError(edad, "La edad es obligatoria.");
-        valido = false;
-    } else if (isNaN(edad.value) || edad.value <= 0) {
-        edad.classList.add("is-invalid");
-        mostrarMensajeError(edad, "Debe ser un número válido.");
-        valido = false;
-    } else {
-        limpiarError(edad);
-    }
+    try {
+        await fetch(API_URL, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, nombre, email, edad })
+        });
 
-    // Si todo está validado, se ejecuta la función para guardar el usuario
-    if (valido) {
-        guardarUsuario();
+        document.querySelector("#modalUsuario .btn-close").click();
+        mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+        cargarUsuarios();
+    } catch (error) {
+        mostrarNotificacion("Error al guardar usuario ❌", "error");
     }
-});
+}
+
 
 function mostrarMensajeError(input, mensaje) {
     let error = input.nextElementSibling;
@@ -266,26 +254,7 @@ function limpiarError(input) {
             });
         }
 
-        async function guardarUsuario() {
-            const id = document.getElementById("usuarioId").value;
-            const nombre = document.getElementById("usuarioNombre").value;
-            const email = document.getElementById("usuarioEmail").value;
-            const edad = document.getElementById("usuarioEdad").value;
-            const metodo = id ? "PUT" : "POST";
-
-            try {
-                await fetch(API_URL, {
-                    method: metodo,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, nombre, email, edad })
-                });
-                document.querySelector("#modalUsuario .btn-close").click();
-                mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-                cargarUsuarios();
-            } catch (error) {
-                mostrarNotificacion("Error al guardar usuario ❌", "error");
-            }
-        }
+        
 
         async function editarUsuario(id) {
             const respuesta = await fetch(`${API_URL}?id=${id}`);
