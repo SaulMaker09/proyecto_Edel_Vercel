@@ -237,9 +237,9 @@ return;
 }
 
 // Validación: Email con dominio permitido (@gmail.com, @outlook.com, @hotmail.com)
-const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com)$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 if (!emailRegex.test(email)) {
-mostrarNotificacion("El correo debe ser de Gmail, Outlook o Hotmail", "error");
+mostrarNotificacion("El formato del correo electrónico no es correcto. Asegúrate de que tenga la forma: ejemplo@dominio.com.", "warning");
 return;
 }
 
