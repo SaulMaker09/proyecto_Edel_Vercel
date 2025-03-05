@@ -171,27 +171,6 @@
 
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
-    
-
-function mostrarMensajeError(input, mensaje) {
-    let error = input.nextElementSibling;
-    if (!error || !error.classList.contains("invalid-feedback")) {
-        error = document.createElement("div");
-        error.classList.add("invalid-feedback");
-        input.parentNode.appendChild(error);
-    }
-    error.textContent = mensaje;
-}
-
-function limpiarError(input) {
-    input.classList.remove("is-invalid");
-    let error = input.nextElementSibling;
-    if (error && error.classList.contains("invalid-feedback")) {
-        error.remove();
-    }
-}
-
-
         function mostrarNotificacion(mensaje, tipo) {
             Swal.fire({
                 title: mensaje,
@@ -235,53 +214,82 @@ function limpiarError(input) {
             });
         }
 
-        async function guardarUsuario() {
-    const id = document.getElementById("usuarioId").value;
-    const nombre = document.getElementById("usuarioNombre").value.trim();
-    const email = document.getElementById("usuarioEmail").value.trim();
-    const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
-    const Telefono = document.getElementById("usuarioTelefono").value.trim();
-    const Direccion = document.getElementById("usuarioDireccion").value.trim();
-    const metodo = id ? "PUT" : "POST";
+        async function agregarUsuario() {
+            const nombre = document.getElementById("usuarioNombre").value.trim();
+            const email = document.getElementById("usuarioEmail").value.trim();
+            const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
+            const Telefono = document.getElementById("usuarioTelefono").value.trim();
+            const Direccion = document.getElementById("usuarioDireccion").value.trim();
 
-    // Validación de campos vacíos
-    if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
-        Swal.fire({
-            title: "Error",
-            text: "Todos los campos son obligatorios",
-            icon: "error",
-            confirmButtonText: "OK"
-        });
-        return; // Detiene la ejecución si hay campos vacíos
-    }
+            if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
+                mostrarNotificacion("Todos los campos son obligatorios", "error");
+                return;
+            }
 
-    try {
-        const respuesta = await fetch(API_URL, {
-            method: metodo,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
-        });
+            try {
+                const respuesta = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nombre, email, FechaNacimiento, Telefono, Direccion })
+                });
 
-        // Si la respuesta no es un código exitoso (200-299), lanzar un error
-        if (!respuesta.ok) {
-            throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
+                }
+
+                const resultado = await respuesta.json();
+
+                if (resultado.message === "Usuario creado") {
+                    document.querySelector("#modalUsuario .btn-close").click();
+                    mostrarNotificacion("Usuario agregado con éxito ✅", "success");
+                    cargarUsuarios();
+                } else {
+                    throw new Error(resultado.message || "No se pudo agregar el usuario");
+                }
+            } catch (error) {
+                mostrarNotificacion("Error al agregar usuario ❌", "error");
+                console.error("Error en agregarUsuario:", error);
+            }
         }
 
-        const resultado = await respuesta.json(); // Convertimos la respuesta en JSON
+        async function actualizarUsuario() {
+            const id = document.getElementById("usuarioId").value;
+            const nombre = document.getElementById("usuarioNombre").value.trim();
+            const email = document.getElementById("usuarioEmail").value.trim();
+            const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
+            const Telefono = document.getElementById("usuarioTelefono").value.trim();
+            const Direccion = document.getElementById("usuarioDireccion").value.trim();
 
-        if (resultado.success) { // Suponiendo que la API devuelve { success: true }
-            document.querySelector("#modalUsuario .btn-close").click();
-            mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-            cargarUsuarios(); // Recargar la tabla sin recargar la página
-        } else {
-            throw new Error(resultado.message || "No se pudo guardar el usuario");
+            if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
+                mostrarNotificacion("Todos los campos son obligatorios", "error");
+                return;
+            }
+
+            try {
+                const respuesta = await fetch(API_URL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
+                });
+
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
+                }
+
+                const resultado = await respuesta.json();
+
+                if (resultado.message === "Usuario actualizado") {
+                    document.querySelector("#modalUsuario .btn-close").click();
+                    mostrarNotificacion("Usuario actualizado con éxito ✅", "success");
+                    cargarUsuarios();
+                } else {
+                    throw new Error(resultado.message || "No se pudo actualizar el usuario");
+                }
+            } catch (error) {
+                mostrarNotificacion("Error al actualizar usuario ❌", "error");
+                console.error("Error en actualizarUsuario:", error);
+            }
         }
-    } catch (error) {
-        mostrarNotificacion("Error al guardar usuario ❌", "error");
-        console.error("Error en guardarUsuario:", error);
-    }
-}
-
 
         async function editarUsuario(id) {
             const respuesta = await fetch(`${API_URL}?id=${id}`);
@@ -322,7 +330,14 @@ function limpiarError(input) {
             });
         }
 
-        document.getElementById("guardarUsuario").addEventListener("click", guardarUsuario);
+        document.getElementById("guardarUsuario").addEventListener("click", () => {
+            const id = document.getElementById("usuarioId").value;
+            if (id) {
+                actualizarUsuario();
+            } else {
+                agregarUsuario();
+            }
+        });
     </script>
 </body>
 </html>
