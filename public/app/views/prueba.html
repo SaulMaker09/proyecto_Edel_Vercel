@@ -25,16 +25,17 @@
             color: #4f46e5;
         }
         .table-hover tbody tr:hover {
-            background-color: #000000;
+            background-color: #ffffff;
             transition: 0.3s;
+            color: black !important;
         }
         .modal-content {
-            background: #000000;
-            color: white;
+            background: #ffffff;
+            color: rgb(0, 0, 0);
             border-radius: 10px;
         }
         .btn-primary {
-            background: #6366f1;
+            background: #6366f1;    
             border: none;
         }
         .btn-primary:hover {
@@ -65,7 +66,7 @@
         }
 
         .table1 {
-            border-radius: 10%;
+            border-radius: 10% !important;
         }
 
         .is-invalid {
@@ -110,8 +111,8 @@
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-primary" onclick="abrirModal()"><i class="fa-solid fa-circle-plus"></i>   Agregar Usuario</button>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover table-dark table-bordered table1">
+        <div class="table-responsive table1">
+            <table class="table table-hover table-dark table-bordered ">
                 <thead>
                     <tr>
                         <th>ID</th>
