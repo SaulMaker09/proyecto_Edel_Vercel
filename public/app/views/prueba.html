@@ -260,6 +260,8 @@ const telefonoRegex = /^\d{10}$/;
 if (!telefonoRegex.test(Telefono)) {
 mostrarNotificacion("El teléfono debe tener exactamente 10 números", "error");
 return;
+}else{
+    mostrarNotificacion("Solo Numeros", "error")
 }
 
 // Validación: Dirección (formato básico de dirección)
