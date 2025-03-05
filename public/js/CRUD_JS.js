@@ -128,7 +128,7 @@ console.error("Error en agregarUsuario:", error);
 }
 
     
-    async function editarUsuario(id) {
+     async function editarUsuario(id) {
         const respuesta = await fetch(`${API_URL}?id=${id}`);
         const usuario = await respuesta.json();
         document.getElementById("usuarioId").value = usuario.id;
@@ -139,7 +139,6 @@ console.error("Error en agregarUsuario:", error);
         document.getElementById("usuarioDireccion").value = usuario.Direccion;
         new bootstrap.Modal(document.getElementById("modalUsuario")).show();
     }
-
 async function eliminarUsuario(id) {
     Swal.fire({
         title: "¿Seguro que deseas eliminar este usuario?",

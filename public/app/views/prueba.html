@@ -306,7 +306,7 @@ console.error("Error en agregarUsuario:", error);
 }
 
     
-    async function editarUsuario(id) {
+async function editarUsuario(id) {
         const respuesta = await fetch(`${API_URL}?id=${id}`);
         const usuario = await respuesta.json();
         document.getElementById("usuarioId").value = usuario.id;
