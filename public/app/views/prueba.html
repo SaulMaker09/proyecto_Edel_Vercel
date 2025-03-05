@@ -236,14 +236,15 @@ function limpiarError(input) {
         }
 
         async function guardarUsuario() {
-            const id = document.getElementById("usuarioId").value;
-            const nombre = document.getElementById("usuarioNombre").value.trim();
-            const email = document.getElementById("usuarioEmail").value.trim();
-            const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
-            const Telefono = document.getElementById("usuarioTelefono").value.trim();
-            const Direccion = document.getElementById("usuarioDireccion").value.trim();
-            const metodo = id ? "PUT" : "POST";
-            // Validación de campos vacíos
+    const id = document.getElementById("usuarioId").value;
+    const nombre = document.getElementById("usuarioNombre").value.trim();
+    const email = document.getElementById("usuarioEmail").value.trim();
+    const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
+    const Telefono = document.getElementById("usuarioTelefono").value.trim();
+    const Direccion = document.getElementById("usuarioDireccion").value.trim();
+    const metodo = id ? "PUT" : "POST";
+
+    // Validación de campos vacíos
     if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
         Swal.fire({
             title: "Error",
@@ -255,27 +256,32 @@ function limpiarError(input) {
     }
 
     try {
-    const respuesta = await fetch(API_URL, {
-        method: metodo,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
-    });
+        const respuesta = await fetch(API_URL, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
+        });
 
-    const resultado = await respuesta.json(); // Convertimos la respuesta en JSON
+        // Si la respuesta no es un código exitoso (200-299), lanzar un error
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
+        }
 
-    if (resultado.success) { // Suponiendo que la API devuelve { success: true }
-        document.querySelector("#modalUsuario .btn-close").click();
-        mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-        cargarUsuarios(); // Recargar la tabla sin recargar la página
-    } else {
-        throw new Error(resultado.message || "No se pudo guardar el usuario");
+        const resultado = await respuesta.json(); // Convertimos la respuesta en JSON
+
+        if (resultado.success) { // Suponiendo que la API devuelve { success: true }
+            document.querySelector("#modalUsuario .btn-close").click();
+            mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+            cargarUsuarios(); // Recargar la tabla sin recargar la página
+        } else {
+            throw new Error(resultado.message || "No se pudo guardar el usuario");
+        }
+    } catch (error) {
+        mostrarNotificacion("Error al guardar usuario ❌", "error");
+        console.error("Error en guardarUsuario:", error);
     }
-} catch (error) {
-    mostrarNotificacion("Error al guardar usuario ❌", "error");
-    console.error("Error en guardarUsuario:", error);
 }
 
-        }
 
         async function editarUsuario(id) {
             const respuesta = await fetch(`${API_URL}?id=${id}`);
