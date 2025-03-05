@@ -27,7 +27,7 @@
         .table-hover tbody tr:hover {
             background-color: #ffffff;
             transition: 0.3s;
-            color: black !important;
+            color: rgb(0, 0, 0) !important;
         }
         .modal-content {
             background: #ffffff;
@@ -66,7 +66,10 @@
         }
 
         .table1 {
-            border-radius: 10% !important;
+            border-collapse: separate; /* Esto es necesario para que el border-radius funcione correctamente */
+            border-spacing: 0; /* Elimina el espacio entre las celdas */
+            border-radius: 10px; /* Ajusta el radio del borde redondeado */
+            overflow: hidden;
         }
 
         .is-invalid {
@@ -111,8 +114,8 @@
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-primary" onclick="abrirModal()"><i class="fa-solid fa-circle-plus"></i>   Agregar Usuario</button>
         </div>
-        <div class="table-responsive table1">
-            <table class="table table-hover table-dark table-bordered ">
+        <div class="table-responsive ">
+            <table class="table table-hover table-light table-bordered table1">
                 <thead>
                     <tr>
                         <th>ID</th>
