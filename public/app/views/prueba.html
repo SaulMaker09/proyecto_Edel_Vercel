@@ -305,6 +305,7 @@ console.error("Error en agregarUsuario:", error);
 }
 }
 
+
     
 async function editarUsuario(id) {
         const respuesta = await fetch(`${API_URL}?id=${id}`);
@@ -317,6 +318,58 @@ async function editarUsuario(id) {
         document.getElementById("usuarioDireccion").value = usuario.Direccion;
         new bootstrap.Modal(document.getElementById("modalUsuario")).show();
     }
+
+
+async function actualizarUsuario() {
+    const id = document.getElementById("usuarioId").value;
+    const nombre = document.getElementById("usuarioNombre").value.trim();
+    const email = document.getElementById("usuarioEmail").value.trim();
+    const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
+    const Telefono = document.getElementById("usuarioTelefono").value.trim();
+    const Direccion = document.getElementById("usuarioDireccion").value.trim();
+
+    if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
+        mostrarNotificacion("Todos los campos son obligatorios", "error");
+        return;
+    }
+
+    try {
+        const respuesta = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
+        }
+
+        const resultado = await respuesta.json();
+
+        if (resultado.message === "Usuario actualizado") {
+            document.querySelector("#modalUsuario .btn-close").click();
+            mostrarNotificacion("Usuario actualizado con éxito ✅", "success");
+            cargarUsuarios();
+        } else {
+            throw new Error(resultado.message || "No se pudo actualizar el usuario");
+        }
+    } catch (error) {
+        mostrarNotificacion("Error al actualizar usuario ❌", "error");
+        console.error("Error en actualizarUsuario:", error);
+    }
+}
+
+async function editarUsuario(id) {
+    const respuesta = await fetch(`${API_URL}?id=${id}`);
+    const usuario = await respuesta.json();
+    document.getElementById("usuarioId").value = usuario.id;
+    document.getElementById("usuarioNombre").value = usuario.nombre;
+    document.getElementById("usuarioEmail").value = usuario.email;
+    document.getElementById("usuarioFechaNac").value = usuario.FechaNacimiento;
+    document.getElementById("usuarioTelefono").value = usuario.Telefono;
+    document.getElementById("usuarioDireccion").value = usuario.Direccion;
+    new bootstrap.Modal(document.getElementById("modalUsuario")).show();
+}
 
 async function eliminarUsuario(id) {
     Swal.fire({
