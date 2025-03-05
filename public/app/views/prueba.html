@@ -223,42 +223,76 @@
         }
 
         async function agregarUsuario() {
-            const nombre = document.getElementById("usuarioNombre").value.trim();
-            const email = document.getElementById("usuarioEmail").value.trim();
-            const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
-            const Telefono = document.getElementById("usuarioTelefono").value.trim();
-            const Direccion = document.getElementById("usuarioDireccion").value.trim();
+    const nombre = document.getElementById("usuarioNombre").value.trim();
+    const email = document.getElementById("usuarioEmail").value.trim();
+    const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
+    const Telefono = document.getElementById("usuarioTelefono").value.trim();
+    const Direccion = document.getElementById("usuarioDireccion").value.trim();
 
-            if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
-                mostrarNotificacion("Todos los campos son obligatorios", "error");
-                return;
-            }
+    // Validación: Todos los campos obligatorios
+    if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
+        mostrarNotificacion("Todos los campos son obligatorios", "error");
+        return;
+    }
 
-            try {
-                const respuesta = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nombre, email, FechaNacimiento, Telefono, Direccion })
-                });
+    // Validación: Email con dominio permitido (@gmail.com, @outlook.com, @hotmail.com)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com)$/;
+    if (!emailRegex.test(email)) {
+        mostrarNotificacion("El correo debe ser de Gmail, Outlook o Hotmail", "error");
+        return;
+    }
 
-                if (!respuesta.ok) {
-                    throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
-                }
+    // Validación: Fecha de nacimiento (mayores de 18 años)
+    const fechaNacimiento = new Date(FechaNacimiento);
+    const hoy = new Date();
+    const edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+    const dia = hoy.getDate() - fechaNacimiento.getDate();
+    
+    if (edad < 18 || (edad === 18 && (mes < 0 || (mes === 0 && dia < 0)))) {
+        mostrarNotificacion("El usuario debe ser mayor de 18 años", "error");
+        return;
+    }
 
-                const resultado = await respuesta.json();
+    // Validación: Teléfono (solo números y 10 caracteres)
+    const telefonoRegex = /^\d{10}$/;
+    if (!telefonoRegex.test(Telefono)) {
+        mostrarNotificacion("El teléfono debe tener exactamente 10 números", "error");
+        return;
+    }
 
-                if (resultado.message === "Usuario creado") {
-                    document.querySelector("#modalUsuario .btn-close").click();
-                    mostrarNotificacion("Usuario agregado con éxito ✅", "success");
-                    cargarUsuarios();
-                } else {
-                    throw new Error(resultado.message || "No se pudo agregar el usuario");
-                }
-            } catch (error) {
-                mostrarNotificacion("Error al agregar usuario ❌", "error");
-                console.error("Error en agregarUsuario:", error);
-            }
+    // Validación: Dirección (formato básico de dirección)
+    const direccionRegex = /^[a-zA-Z0-9\s.,#-]+$/;
+    if (!direccionRegex.test(Direccion)) {
+        mostrarNotificacion("Formato de dirección inválido", "error");
+        return;
+    }
+
+    try {
+        const respuesta = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, email, FechaNacimiento, Telefono, Direccion })
+        });
+
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP: ${respuesta.status} - ${respuesta.statusText}`);
         }
+
+        const resultado = await respuesta.json();
+
+        if (resultado.message === "Usuario creado") {
+            document.querySelector("#modalUsuario .btn-close").click();
+            mostrarNotificacion("Usuario agregado con éxito ✅", "success");
+            cargarUsuarios();
+        } else {
+            throw new Error(resultado.message || "No se pudo agregar el usuario");
+        }
+    } catch (error) {
+        mostrarNotificacion("Error al agregar usuario ❌", "error");
+        console.error("Error en agregarUsuario:", error);
+    }
+}
 
         async function actualizarUsuario() {
             const id = document.getElementById("usuarioId").value;
