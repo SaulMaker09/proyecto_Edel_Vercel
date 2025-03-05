@@ -254,18 +254,19 @@ function limpiarError(input) {
         return; // Detiene la ejecución si hay campos vacíos
     }
 
-            try {
-                await fetch(API_URL, {
-                    method: metodo,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
-                });
-                const resultado = await respuesta.json(); // Capturamos la respuesta
+    try {
+        const respuesta = await fetch(API_URL, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
+        });
 
-        if (resultado.success) { // Suponiendo que la API devuelve { success: true }
+        const resultado = await respuesta.json(); // Captura la respuesta
+
+        if (resultado.success) { 
             document.querySelector("#modalUsuario .btn-close").click();
             mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-            cargarUsuarios();
+            cargarUsuarios(); // Actualizar la tabla sin recargar la página
         } else {
             throw new Error(resultado.message || "No se pudo guardar el usuario");
         }
