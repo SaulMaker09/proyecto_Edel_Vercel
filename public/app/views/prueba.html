@@ -255,24 +255,26 @@ function limpiarError(input) {
     }
 
     try {
-        const respuesta = await fetch(API_URL, {
-            method: metodo,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
-        });
+    const respuesta = await fetch(API_URL, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
+    });
 
-        const resultado = await respuesta.json(); // Captura la respuesta
+    const resultado = await respuesta.json(); // Convertimos la respuesta en JSON
 
-        if (resultado.success) { 
-            document.querySelector("#modalUsuario .btn-close").click();
-            mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-            cargarUsuarios(); // Actualizar la tabla sin recargar la página
-        } else {
-            throw new Error(resultado.message || "No se pudo guardar el usuario");
-        }
-    } catch (error) {
-        mostrarNotificacion("Error al guardar usuario ❌", "error");
+    if (resultado.success) { // Suponiendo que la API devuelve { success: true }
+        document.querySelector("#modalUsuario .btn-close").click();
+        mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+        cargarUsuarios(); // Recargar la tabla sin recargar la página
+    } else {
+        throw new Error(resultado.message || "No se pudo guardar el usuario");
     }
+} catch (error) {
+    mostrarNotificacion("Error al guardar usuario ❌", "error");
+    console.error("Error en guardarUsuario:", error);
+}
+
         }
 
         async function editarUsuario(id) {
