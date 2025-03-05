@@ -244,7 +244,7 @@ function limpiarError(input) {
             const Direccion = document.getElementById("usuarioDireccion").value.trim();
             const metodo = id ? "PUT" : "POST";
             // Validación de campos vacíos
-    if (!nombre || !email || !edad) {
+    if (!nombre || !email || !FechaNacimiento || !Telefono || !Direccion) {
         Swal.fire({
             title: "Error",
             text: "Todos los campos son obligatorios",
@@ -258,7 +258,7 @@ function limpiarError(input) {
                 await fetch(API_URL, {
                     method: metodo,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, nombre, email, edad })
+                    body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
                 });
                 document.querySelector("#modalUsuario .btn-close").click();
                 mostrarNotificacion("Usuario guardado con éxito ✅", "success");
