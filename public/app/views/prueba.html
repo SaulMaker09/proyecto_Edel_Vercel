@@ -202,25 +202,34 @@ function abrirModal() {
 }
 
 async function cargarUsuarios() {
-    const respuesta = await fetch(API_URL);
-    const usuarios = await respuesta.json();
-    const tabla = document.getElementById("tablaUsuarios");
-    tabla.innerHTML = "";
-    usuarios.forEach(user => {
-        tabla.innerHTML += `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.nombre}</td>
-                <td>${user.email}</td>
-                <td>${user.FechaNacimiento}</td>
-                <td>${user.Telefono}</td>
-                <td>${user.Direccion}</td>
-                <td>
-                    <button class="btn btn-warning btn-sm" onclick="editarUsuario(${user.id})">Editar    <i class="fa-solid fa-pen"></i></button>
-                    <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${user.id})">Eliminar   <i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>`;
-    });
+    try {
+        // Llamada a la API para obtener los datos del usuario
+        const respuesta = await fetch(`${API_URL}?id=${id}`);
+        if (!respuesta.ok) throw new Error("No se pudo obtener los datos del usuario");
+
+        const usuario = await respuesta.json();
+        
+        // Verificamos que el usuario tenga datos antes de llenar los campos
+        if (!usuario || Object.keys(usuario).length === 0) {
+            mostrarNotificacion("Error: No se encontraron datos del usuario", "error");
+            return;
+        }
+
+        // **Rellenar el formulario del modal con los datos del usuario**
+        document.getElementById("usuarioId").value = usuario.id || "";
+        document.getElementById("usuarioNombre").value = usuario.nombre || "";
+        document.getElementById("usuarioEmail").value = usuario.email || "";
+        document.getElementById("usuarioFechaNac").value = usuario.FechaNacimiento || "";
+        document.getElementById("usuarioTelefono").value = usuario.Telefono || "";
+        document.getElementById("usuarioDireccion").value = usuario.Direccion || "";
+
+        // **Abrir el modal sin validaciones previas**
+        new bootstrap.Modal(document.getElementById("modalUsuario")).show();
+        
+    } catch (error) {
+        mostrarNotificacion("Error al cargar los datos del usuario ❌", "error");
+        console.error("Error en cargarDatosUsuario:", error);
+    }
 }
 
 async function agregarUsuario() {
