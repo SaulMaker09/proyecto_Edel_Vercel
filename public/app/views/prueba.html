@@ -146,7 +146,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Fecha de Nacimiento</label>
-                        <input type="date" class="form-control" id="usuarioFeachaNac" required>
+                        <input type="date" class="form-control" id="usuarioFechaNac" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Telefono</label>
@@ -207,7 +207,7 @@ function limpiarError(input) {
             document.getElementById("usuarioId").value = "";
             document.getElementById("usuarioNombre").value = "";
             document.getElementById("usuarioEmail").value = "";
-            document.getElementById("usuarioFeachaNac").value = "";
+            document.getElementById("usuarioFechaNac").value = "";
             document.getElementById("usuarioTelefono").value = "";
             document.getElementById("usuarioDireccion").value = "";
             new bootstrap.Modal(document.getElementById("modalUsuario")).show();
@@ -239,7 +239,7 @@ function limpiarError(input) {
             const id = document.getElementById("usuarioId").value;
             const nombre = document.getElementById("usuarioNombre").value.trim();
             const email = document.getElementById("usuarioEmail").value.trim();
-            const FechaNacimiento = document.getElementById("usuarioFeachaNac").value.trim();
+            const FechaNacimiento = document.getElementById("usuarioFechaNac").value.trim();
             const Telefono = document.getElementById("usuarioTelefono").value.trim();
             const Direccion = document.getElementById("usuarioDireccion").value.trim();
             const metodo = id ? "PUT" : "POST";
@@ -260,12 +260,18 @@ function limpiarError(input) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id, nombre, email, FechaNacimiento, Telefono, Direccion })
                 });
-                document.querySelector("#modalUsuario .btn-close").click();
-                mostrarNotificacion("Usuario guardado con éxito ✅", "success");
-                cargarUsuarios();
-            } catch (error) {
-                mostrarNotificacion("Error al guardar usuario ❌", "error");
-            }
+                const resultado = await respuesta.json(); // Capturamos la respuesta
+
+        if (resultado.success) { // Suponiendo que la API devuelve { success: true }
+            document.querySelector("#modalUsuario .btn-close").click();
+            mostrarNotificacion("Usuario guardado con éxito ✅", "success");
+            cargarUsuarios();
+        } else {
+            throw new Error(resultado.message || "No se pudo guardar el usuario");
+        }
+    } catch (error) {
+        mostrarNotificacion("Error al guardar usuario ❌", "error");
+    }
         }
 
         async function editarUsuario(id) {
@@ -274,7 +280,7 @@ function limpiarError(input) {
             document.getElementById("usuarioId").value = usuario.id;
             document.getElementById("usuarioNombre").value = usuario.nombre;
             document.getElementById("usuarioEmail").value = usuario.email;
-            document.getElementById("usuarioFeachaNac").value = usuario.FechaNacimiento;
+            document.getElementById("usuarioFechaNac").value = usuario.FechaNacimiento;
             document.getElementById("usuarioTelefono").value = usuario.Telefono;
             document.getElementById("usuarioDireccion").value = usuario.Direccion;
             new bootstrap.Modal(document.getElementById("modalUsuario")).show();
