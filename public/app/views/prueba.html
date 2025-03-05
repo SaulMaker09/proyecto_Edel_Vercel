@@ -159,7 +159,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Telefono</label>
-                        <input type="text" class="form-control" id="usuarioTelefono" required>
+                        <input type="text" maxlength="10" oninput="validarTelefono(this)" class="form-control" id="usuarioTelefono" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Dirección</label>
@@ -255,15 +255,23 @@ mostrarNotificacion("El usuario debe ser mayor de 18 años", "error");
 return;
 }
 
-// Validación: Teléfono (solo números y 10 caracteres)
-const telefonoRegex = /^\d{10}$/;
-if (!telefonoRegex.test(Telefono)) {
-mostrarNotificacion("El teléfono debe tener exactamente 10 números", "error");
-return;
-}else{
-    mostrarNotificacion("Solo Numeros", "error")
+// Función para validar el teléfono mientras el usuario escribe
+function validarTelefono(input) {
+    input.value = input.value.replace(/\D/g, ''); // Elimina cualquier carácter que no sea número
 }
 
+// Validación en la función agregarUsuario
+const telefonoRegex = /^\d{10}$/;
+
+if (!/^\d+$/.test(Telefono)) { 
+    mostrarNotificacion("El teléfono solo debe contener números", "error");
+    return;
+}
+
+if (!telefonoRegex.test(Telefono)) {
+    mostrarNotificacion("El teléfono debe tener exactamente 10 números", "error");
+    return;
+}
 // Validación: Dirección (formato básico de dirección)
 const direccionRegex = /^[a-zA-Z0-9\s.,#-]+$/;
 if (!direccionRegex.test(Direccion)) {
