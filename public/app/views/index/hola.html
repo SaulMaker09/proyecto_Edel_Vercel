@@ -1,82 +1,140 @@
-<div class="container mt-4">
-    <ul class="nav nav-tabs" id="gestionTabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="usuarios-tab" data-toggle="tab" href="#usuarios">Usuarios</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="perfiles-tab" data-toggle="tab" href="#perfiles">Perfiles</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="permisos-tab" data-toggle="tab" href="#permisos">Permisos</a>
-        </li>
-    </ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Dinámico</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    <div class="tab-content mt-3">
-        <!-- Gestión de Usuarios -->
-        <div class="tab-pane fade show active" id="usuarios">
-            <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#modalUsuario">Agregar Usuario</button>
-            <div id="tablaUsuarios"></div>
+        #loginForm, #dashboard {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #module-content {
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+
+        #logoutBtn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FORMULARIO DE LOGIN -->
+    <div id="loginForm">
+        <h3 class="text-center">Iniciar Sesión</h3>
+        <div id="loginError" class="alert alert-danger hidden" role="alert">
+            Credenciales incorrectas. Inténtalo de nuevo.
         </div>
-
-        <!-- Gestión de Perfiles -->
-        <div class="tab-pane fade" id="perfiles">
-            <button class="btn btn-success mb-2" data-toggle="modal" data-target="#modalPerfil">Agregar Perfil</button>
-            <div id="tablaPerfiles"></div>
-        </div>
-
-        <!-- Gestión de Permisos -->
-        <div class="tab-pane fade" id="permisos">
-            <button class="btn btn-info mb-2" data-toggle="modal" data-target="#modalPermisos">Asignar Permisos</button>
-            <div id="tablaPermisos"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Usuario -->
-<div class="modal fade" id="modalUsuario">
-    <div class="modal-dialog">
-        <form id="formUsuario">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Gestionar Usuario</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <!-- Campos para Usuario -->
-                    <input type="hidden" id="idUsuario">
-                    <div class="form-group">
-                        <label>Nombre</label>
-                        <input type="text" class="form-control" id="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Puesto</label>
-                        <input type="text" class="form-control" id="puesto">
-                    </div>
-                    <div class="form-group">
-                        <label>Usuario</label>
-                        <input type="text" class="form-control" id="usuario" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Contraseña</label>
-                        <input type="password" class="form-control" id="contraseña" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Perfil</label>
-                        <select id="id_perfil" class="form-control"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select id="estatus" class="form-control">
-                            <option value="1">Activo</option>
-                            <option value="0">Baja</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                </div>
+        <form id="loginFormElement">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" class="form-control" id="username" required>
             </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
         </form>
     </div>
-</div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <h3 class="text-center">Bienvenido al Dashboard</h3>
+        <div class="text-center mb-4">
+            <button class="btn btn-info" onclick="loadModule('perfil')">Perfil</button>
+            <button class="btn btn-info" onclick="loadModule('configuracion')">Configuración</button>
+            <button class="btn btn-info" onclick="loadModule('reportes')">Reportes</button>
+        </div>
+        <div id="module-content" class="text-center">
+            <p>Selecciona un módulo para ver su contenido.</p>
+        </div>
+        <button id="logoutBtn" class="btn btn-danger btn-block" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        // API URL
+        const apiUrl = "https://ghostwhite-wasp-985227.hostingersite.com/api_Perfiles.php";
+
+        // LOGIN
+        document.getElementById("loginFormElement").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        action: "login",
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showDashboard();
+                } else {
+                    document.getElementById("loginError").style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+                alert("Error al conectar con el servidor. Inténtalo más tarde.");
+            }
+        });
+
+        // MOSTRAR DASHBOARD
+        function showDashboard() {
+            document.getElementById("loginForm").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+        }
+
+        // CERRAR SESIÓN
+        function logout() {
+            document.getElementById("dashboard").classList.add("hidden");
+            document.getElementById("loginForm").classList.remove("hidden");
+        }
+
+        // CARGAR MÓDULOS
+        async function loadModule(moduleName) {
+            const moduleContent = document.getElementById("module-content");
+
+            try {
+                const response = await fetch(`${apiUrl}?action=module&name=${moduleName}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    moduleContent.innerHTML = `<h4>${data.title}</h4><p>${data.description}</p>`;
+                } else {
+                    moduleContent.innerHTML = `<p>Error al cargar el módulo.</p>`;
+                }
+            } catch (error) {
+                console.error("Error al cargar el módulo:", error);
+                moduleContent.innerHTML = `<p>Error al conectar con la API.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
