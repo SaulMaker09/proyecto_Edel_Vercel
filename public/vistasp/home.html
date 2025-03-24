@@ -171,8 +171,8 @@
         <div class="form-group">
             <input type="text" id="username" name="username" placeholder=" " required maxlength="60"
                 oninput="validateUsername()"
-                pattern="^[A-Za-z0-9]+$|^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com)$"
-                title="Solo letras y números o correos @gmail.com / @hotmail.com">
+                pattern="^[A-Za-z0-9]+$|^[a-zA-Z0-9._%+-]$" 
+                title="Solo letras y números">
             <label for="username">Ingrese su usuario</label>
             <div class="invalid-feedback">Ingrese un usuario válido o un correo @gmail.com/@hotmail.com.</div>
         </div>

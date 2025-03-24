@@ -1,5 +1,82 @@
-<h1>Congratulations!</h1>
+<div class="container mt-4">
+    <ul class="nav nav-tabs" id="gestionTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="usuarios-tab" data-toggle="tab" href="#usuarios">Usuarios</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="perfiles-tab" data-toggle="tab" href="#perfiles">Perfiles</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="permisos-tab" data-toggle="tab" href="#permisos">Permisos</a>
+        </li>
+    </ul>
 
-<p>You're now flying with Phalcon. Great things are about to happen!</p>
+    <div class="tab-content mt-3">
+        <!-- Gestión de Usuarios -->
+        <div class="tab-pane fade show active" id="usuarios">
+            <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#modalUsuario">Agregar Usuario</button>
+            <div id="tablaUsuarios"></div>
+        </div>
 
-<p>This page is located at PORFA</p>
+        <!-- Gestión de Perfiles -->
+        <div class="tab-pane fade" id="perfiles">
+            <button class="btn btn-success mb-2" data-toggle="modal" data-target="#modalPerfil">Agregar Perfil</button>
+            <div id="tablaPerfiles"></div>
+        </div>
+
+        <!-- Gestión de Permisos -->
+        <div class="tab-pane fade" id="permisos">
+            <button class="btn btn-info mb-2" data-toggle="modal" data-target="#modalPermisos">Asignar Permisos</button>
+            <div id="tablaPermisos"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Usuario -->
+<div class="modal fade" id="modalUsuario">
+    <div class="modal-dialog">
+        <form id="formUsuario">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gestionar Usuario</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Campos para Usuario -->
+                    <input type="hidden" id="idUsuario">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" class="form-control" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Puesto</label>
+                        <input type="text" class="form-control" id="puesto">
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" class="form-control" id="usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" class="form-control" id="contraseña" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Perfil</label>
+                        <select id="id_perfil" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="estatus" class="form-control">
+                            <option value="1">Activo</option>
+                            <option value="0">Baja</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
