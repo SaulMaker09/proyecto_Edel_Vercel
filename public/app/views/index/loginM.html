@@ -45,29 +45,54 @@
     </div>
 
     <script>
-        fetch('https://ghostwhite-wasp-985227.hostingersite.com/login.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombreUsuario: username, contrasena: password })
-        })
-        .then(response => {
-            console.log('Respuesta recibida:', response);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Datos:', data); // Verifica si data tiene success
-            if (data.success) {
-                localStorage.setItem('id', data.id);
-                localStorage.setItem('idPerfil', data.idPerfil);
-                window.location.href = '/public/app/views/index/Modulos.html'; // URL correcta
-            } else {
-                document.getElementById('error-message').style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('Error en la autenticación:', error);
-        });
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
         
+            // Capturar valores correctos
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+        
+            // Verificación para ver si los valores son correctos antes de enviar
+            console.log('Usuario:', username);
+            console.log('Contraseña:', password);
+        
+            // Realizar la petición a la API de login
+            fetch('https://ghostwhite-wasp-985227.hostingersite.com/login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Verifica si la API acepta JSON
+                },
+                body: JSON.stringify({
+                    nombreUsuario: username, // Asegúrate de que estos nombres coincidan con tu API
+                    contrasena: password
+                })
+            })
+            .then(response => {
+                console.log('Respuesta recibida:', response);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json(); // Convertir la respuesta a JSON
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);
+        
+                // Verificar si el login fue exitoso
+                if (data.success) {
+                    console.log('Login exitoso!');
+                    localStorage.setItem('id', data.id);         // Almacena el ID del usuario
+                    localStorage.setItem('idPerfil', data.idPerfil); // Almacena el perfil
+                    window.location.href = '/public/app/views/index/Modulos.html'; // Redirigir al dashboard
+                } else {
+                    console.log('Login fallido: Datos incorrectos');
+                    document.getElementById('error-message').style.display = 'block'; // Mostrar error
+                }
+            })
+            .catch(error => {
+                console.error('Error en la autenticación:', error);
+                alert('Error en la conexión con el servidor.');
+            });
+        });
         
     </script>
 </body>
