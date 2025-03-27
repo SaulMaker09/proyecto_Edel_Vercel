@@ -52,7 +52,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
         
-            fetch('login.php', {
+            fetch('https://ghostwhite-wasp-985227.hostingersite.com/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombreUsuario: username, contrasena: password }) // Usar los nombres correctos
@@ -63,7 +63,7 @@
                     // Guardar userId y perfil en localStorage
                     localStorage.setItem('id', data.id);
                     localStorage.setItem('idPerfil', data.idPerfil);
-                    window.location.href = 'modulos.html'; // Redirige al dashboard
+                    window.location.href = '/public/app/views/index/Mudulos.html'; // Redirige al dashboard
                 } else {
                     document.getElementById('error-message').style.display = 'block';
                 }
