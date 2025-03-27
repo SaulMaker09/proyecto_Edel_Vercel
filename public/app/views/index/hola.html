@@ -1,140 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Dinámico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
-            background-color: #f8f9fa;
+        /* Estilo básico para el menú */
+        .navbar {
+            background-color: #343a40;
         }
-
-        #loginForm, #dashboard {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-radius: 10px;
+        .navbar a {
+            color: white;
         }
-
-        .hidden {
-            display: none;
+        .container {
+            margin-top: 30px;
         }
-
-        #module-content {
-            padding: 20px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-        }
-
-        #logoutBtn {
+        .menu-section {
             margin-top: 20px;
+        }
+        .menu-section h3 {
+            color: #343a40;
         }
     </style>
 </head>
 <body>
-
-    <!-- FORMULARIO DE LOGIN -->
-    <div id="loginForm">
-        <h3 class="text-center">Iniciar Sesión</h3>
-        <div id="loginError" class="alert alert-danger hidden" role="alert">
-            Credenciales incorrectas. Inténtalo de nuevo.
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logout">Cerrar sesión</a>
+                </li>
+            </ul>
         </div>
-        <form id="loginFormElement">
-            <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" class="form-control" id="username" required>
+    </nav>
+
+    <!-- Contenido -->
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <!-- Menú de módulos -->
+                <div id="menu-modulos">
+                    <div class="menu-section" id="seccion-modulos">
+                        <h3>Modulos disponibles</h3>
+                        <ul id="menu-list" class="list-group">
+                            <!-- Los módulos aparecerán aquí dinámicamente -->
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" class="form-control" id="password" required>
+            <div class="col-9">
+                <!-- Aquí irá el contenido principal según el módulo -->
+                <div id="contenido-modulo">
+                    <h2>Bienvenido al Dashboard</h2>
+                    <p>Selecciona un módulo del menú a la izquierda.</p>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
-        </form>
+        </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard" class="hidden">
-        <h3 class="text-center">Bienvenido al Dashboard</h3>
-        <div class="text-center mb-4">
-            <button class="btn btn-info" onclick="loadModule('perfil')">Perfil</button>
-            <button class="btn btn-info" onclick="loadModule('configuracion')">Configuración</button>
-            <button class="btn btn-info" onclick="loadModule('reportes')">Reportes</button>
-        </div>
-        <div id="module-content" class="text-center">
-            <p>Selecciona un módulo para ver su contenido.</p>
-        </div>
-        <button id="logoutBtn" class="btn btn-danger btn-block" onclick="logout()">Cerrar Sesión</button>
-    </div>
-
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // API URL
-        const apiUrl = "https://ghostwhite-wasp-985227.hostingersite.com/api_Perfiles.php";
+        // Suponiendo que el usuario está autenticado y tenemos su ID y perfil
+        const userId = localStorage.getItem('userId'); // Puedes obtenerlo de un JWT o de la sesión
+        const userProfileId = localStorage.getItem('userProfileId');
+        
+        // Cargar los módulos disponibles desde la API
+        function loadModules() {
+            fetch('getModules.php') // Asegúrate de que esta URL sea correcta
+                .then(response => response.json())
+                .then(modulos => {
+                    let menuList = document.getElementById("menu-list");
+                    menuList.innerHTML = ''; // Limpiar el menú antes de agregar nuevos módulos
+                    modulos.forEach(modulo => {
+                        // Verificar si el usuario tiene permisos para ver este módulo
+                        fetch(`getPermissions.php?userId=${userId}&moduloId=${modulo.id}`)
+                            .then(response => response.json())
+                            .then(permissions => {
+                                // Si el usuario tiene permiso de consulta o alguna acción, mostrar el módulo
+                                if (permissions.bitConsultar || permissions.bitEditar || permissions.bitActualizar || permissions.bitEliminar) {
+                                    let listItem = document.createElement("li");
+                                    listItem.classList.add("list-group-item");
+                                    listItem.textContent = modulo.nombreModulo;
+                                    listItem.addEventListener("click", () => showModuleContent(modulo.id));
+                                    menuList.appendChild(listItem);
+                                }
+                            });
+                    });
+                })
+                .catch(error => console.error('Error al cargar los módulos:', error));
+        }
 
-        // LOGIN
-        document.getElementById("loginFormElement").addEventListener("submit", async function (event) {
-            event.preventDefault();
+        // Mostrar el contenido del módulo
+        function showModuleContent(moduloId) {
+            fetch(`getModuleContent.php?moduloId=${moduloId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let contenidoModulo = document.getElementById("contenido-modulo");
+                    contenidoModulo.innerHTML = `<h2>${data.nombreModulo}</h2><p>${data.descripcion}</p>`;
+                })
+                .catch(error => console.error('Error al cargar el contenido del módulo:', error));
+        }
 
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value.trim();
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        action: "login",
-                        username: username,
-                        password: password
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showDashboard();
-                } else {
-                    document.getElementById("loginError").style.display = "block";
-                }
-            } catch (error) {
-                console.error("Error al conectar con la API:", error);
-                alert("Error al conectar con el servidor. Inténtalo más tarde.");
-            }
+        // Función para cerrar sesión
+        document.getElementById('logout').addEventListener('click', () => {
+            // Aquí puedes limpiar la sesión o el token JWT, si estás usando uno
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userProfileId');
+            window.location.href = 'login.html'; // Redirige al login
         });
 
-        // MOSTRAR DASHBOARD
-        function showDashboard() {
-            document.getElementById("loginForm").classList.add("hidden");
-            document.getElementById("dashboard").classList.remove("hidden");
-        }
-
-        // CERRAR SESIÓN
-        function logout() {
-            document.getElementById("dashboard").classList.add("hidden");
-            document.getElementById("loginForm").classList.remove("hidden");
-        }
-
-        // CARGAR MÓDULOS
-        async function loadModule(moduleName) {
-            const moduleContent = document.getElementById("module-content");
-
-            try {
-                const response = await fetch(`${apiUrl}?action=module&name=${moduleName}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    moduleContent.innerHTML = `<h4>${data.title}</h4><p>${data.description}</p>`;
-                } else {
-                    moduleContent.innerHTML = `<p>Error al cargar el módulo.</p>`;
-                }
-            } catch (error) {
-                console.error("Error al cargar el módulo:", error);
-                moduleContent.innerHTML = `<p>Error al conectar con la API.</p>`;
-            }
-        }
+        // Cargar los módulos cuando la página se haya cargado
+        window.onload = loadModules;
     </script>
 </body>
 </html>
