@@ -45,33 +45,29 @@
     </div>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Corrección: Usar los IDs correctos
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-        
-            fetch('https://ghostwhite-wasp-985227.hostingersite.com/login.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombreUsuario: username, contrasena: password }) // Usar los nombres correctos
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Guardar userId y perfil en localStorage
-                    localStorage.setItem('id', data.id);
-                    localStorage.setItem('idPerfil', data.idPerfil);
-                    window.location.href = '/public/app/views/index/Mudulos.html'; // Redirige al dashboard
-                } else {
-                    document.getElementById('error-message').style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error en la autenticación:', error);
-            });
+        fetch('https://ghostwhite-wasp-985227.hostingersite.com/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombreUsuario: username, contrasena: password })
+        })
+        .then(response => {
+            console.log('Respuesta recibida:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos:', data); // Verifica si data tiene success
+            if (data.success) {
+                localStorage.setItem('id', data.id);
+                localStorage.setItem('idPerfil', data.idPerfil);
+                window.location.href = '/public/app/views/index/Modulos.html'; // URL correcta
+            } else {
+                document.getElementById('error-message').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error en la autenticación:', error);
         });
+        
         
     </script>
 </body>
