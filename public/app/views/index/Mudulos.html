@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            height: 100%;
+            background-color: #343a40;
+            color: white;
+        }
+        .sidebar a {
+            padding: 10px;
+            text-decoration: none;
+            font-size: 16px;
+            color: white;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .submenu {
+            display: none;
+            background-color: #495057;
+        }
+        .submenu a {
+            padding-left: 30px;
+        }
+        .submenu .submenu-level-2 {
+            display: none;
+            background-color: #6c757d;
+        }
+        .submenu .submenu-level-2 a {
+            padding-left: 50px;
+        }
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        .logout-btn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-center mt-3">Panel de Control</h4>
+        <a href="#" onclick="openModule(1)">Dashboard</a>
+        
+        <a href="#" onclick="toggleMenu('menu-usuarios')">Gestión de Usuarios <i class="fas fa-chevron-down float-right"></i></a>
+        <div id="menu-usuarios" class="submenu">
+            <a href="#" onclick="openModule(2)">Usuarios</a>
+            <a href="#" onclick="openModule(7)">Configuración</a>
+        </div>
+
+        <a href="#" onclick="toggleMenu('menu-productos')">Gestión de Productos <i class="fas fa-chevron-down float-right"></i></a>
+        <div id="menu-productos" class="submenu">
+            <a href="#" onclick="openModule(3)">Productos</a>
+            <a href="#" onclick="openModule(5)">Inventario</a>
+            <a href="#" onclick="toggleMenu('menu-ventas')">Ventas <i class="fas fa-chevron-down float-right"></i></a>
+            <div id="menu-ventas" class="submenu submenu-level-2">
+                <a href="#" onclick="openModule(6)">Reportes</a>
+            </div>
+        </div>
+
+        <a href="login.html" class="btn btn-danger btn-block logout-btn">Cerrar sesión</a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <h2 id="module-title" class="text-center">Bienvenido</h2>
+        <p id="module-description" class="text-center">Selecciona un módulo del menú para comenzar.</p>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'login.html';
+        }
+
+        // Mostrar/ocultar submenús
+        function toggleMenu(menuId) {
+            let menu = document.getElementById(menuId);
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Abrir módulo dinámico
+        function openModule(moduloId) {
+            fetch(`getModuleContent.php?moduloId=${moduloId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('module-title').textContent = data.nombreModulo;
+                        document.getElementById('module-description').textContent = data.descripcion || 'No hay descripción disponible.';
+                    } else {
+                        alert('No tienes permisos para acceder a este módulo.');
+                    }
+                })
+                .catch(error => console.error('Error al cargar el contenido del módulo:', error));
+        }
+
+        // Ocultar módulos según permisos del usuario
+        function checkPermissions() {
+            fetch(`getPermissions.php?userId=${userId}`)
+                .then(response => response.json())
+                .then(permisos => {
+                    permisos.forEach(modulo => {
+                        if (!modulo.bitConsultar) {
+                            // Ocultar módulo si el usuario no tiene permiso
+                            document.querySelectorAll(`[onclick="openModule(${modulo.moduloId})"]`).forEach(el => {
+                                el.style.display = 'none';
+                            });
+                        }
+                    });
+                })
+                .catch(error => console.error('Error al verificar permisos:', error));
+        }
+
+        // Verificar permisos al cargar la página
+        window.onload = checkPermissions;
+    </script>
+</body>
+</html>
