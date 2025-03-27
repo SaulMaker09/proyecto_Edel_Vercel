@@ -48,13 +48,14 @@
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('nombreUsuario').value;
-            const password = document.getElementById('contrsena').value;
-
+            // Corrección: Usar los IDs correctos
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+        
             fetch('login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ nombreUsuario: username, contrasena: password }) // Usar los nombres correctos
             })
             .then(response => response.json())
             .then(data => {
@@ -62,7 +63,7 @@
                     // Guardar userId y perfil en localStorage
                     localStorage.setItem('id', data.id);
                     localStorage.setItem('idPerfil', data.idPerfil);
-                    window.location.href = '/public/app/views/index/Mudulos.html'; // Redirige al dashboard
+                    window.location.href = 'modulos.html'; // Redirige al dashboard
                 } else {
                     document.getElementById('error-message').style.display = 'block';
                 }
@@ -71,6 +72,7 @@
                 console.error('Error en la autenticación:', error);
             });
         });
+        
     </script>
 </body>
 </html>
