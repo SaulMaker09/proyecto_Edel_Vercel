@@ -135,6 +135,7 @@
                             // Si el bitConsultar es 0, ocultar el módulo
                             if (modulo.bitConsultar == 0 && modulo.bitAgregar == 0 && modulo.bitEditar == 0 && bitEliminar == 0) {
                                 let moduloElement = document.querySelector(`[onclick="openModule(${modulo.idModulo})"]`);
+                                console.info('Segun entro');
                                 if (moduloElement) {
                                     moduloElement.style.display = 'none';
                                 }
