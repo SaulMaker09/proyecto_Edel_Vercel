@@ -82,6 +82,7 @@
                     console.log('Login exitoso!');
                     localStorage.setItem('id', data.id);         // Almacena el ID del usuario
                     localStorage.setItem('idPerfil', data.idPerfil); // Almacena el perfil
+                    console.log('idPerfil:', localStorage.getItem('idPerfil'));
                     window.location.href = './Mudulos.html'; // Redirigir al dashboard
                 } else {
                     console.log('Login fallido: Datos incorrectos');
