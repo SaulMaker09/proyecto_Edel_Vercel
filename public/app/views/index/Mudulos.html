@@ -70,21 +70,21 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="text-center mt-3">Panel de Control</h4>
-        <a href="#" id="modulo-1" onclick="openModule(1)">Dashboard</a>
+        <a href="#" id="modulo-dashboard" onclick="openModule(1)">Dashboard</a>
 
         <a href="#" onclick="toggleMenu('menu-usuarios')">Gestión de Usuarios <i class="fas fa-chevron-down float-right"></i></a>
         <div id="menu-usuarios" class="submenu">
-            <a href="#" id="modulo-2" onclick="openModule(2)">Usuarios</a>
-            <a href="#" id="modulo-7" onclick="openModule(7)">Configuración</a>
+            <a href="#" id="modulo-usuarios" onclick="openModule(2)">Usuarios</a>
+            <a href="#" id="modulo-configuracion" onclick="openModule(7)">Configuración</a>
         </div>
 
         <a href="#" onclick="toggleMenu('menu-productos')">Gestión de Productos <i class="fas fa-chevron-down float-right"></i></a>
         <div id="menu-productos" class="submenu">
-            <a href="#" id="modulo-3" onclick="openModule(3)">Productos</a>
-            <a href="#" id="modulo-5" onclick="openModule(5)">Inventario</a>
+            <a href="#" id="modulo-productos" onclick="openModule(3)">Productos</a>
+            <a href="#" id="modulo-inventario" onclick="openModule(5)">Inventario</a>
             <a href="#" onclick="toggleMenu('menu-ventas')">Ventas <i class="fas fa-chevron-down float-right"></i></a>
             <div id="menu-ventas" class="submenu submenu-level-2">
-                <a href="#" id="modulo-6" onclick="openModule(6)">Reportes</a>
+                <a href="#" id="modulo-reportes" onclick="openModule(6)">Reportes</a>
             </div>
         </div>
 
@@ -98,15 +98,13 @@
     </div>
 
     <script>
-        // Verificar si el usuario está autenticado
-        const userId = localStorage.getItem('id');
+        // Obtener idPerfil desde localStorage
         const idPerfil = localStorage.getItem('idPerfil');
-
-        if (!userId || !idPerfil) {
-            window.location.href = '/public/app/views/index/loginM.html';
+        if (!idPerfil) {
+            window.location.href = '/public/app/views/index/Modulos.html';
         }
 
-        // Función para mostrar/ocultar submenús
+        // Mostrar/ocultar submenús
         function toggleMenu(menuId) {
             let menu = document.getElementById(menuId);
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
@@ -127,43 +125,30 @@
                 .catch(error => console.error('Error al cargar el contenido del módulo:', error));
         }
 
-        // Obtener permisos desde la API usando idPerfil
+        // Verificar permisos y ocultar módulos no autorizados
         function checkPermissions() {
-            const perfilId = parseInt(localStorage.getItem('idPerfil'));
-            if (!perfilId) {
-                window.location.href = '/public/app/views/index/loginM.html';
-                return;
-            }
-
-            // API para obtener permisos
-            fetch(`https://ghostwhite-wasp-985227.hostingersite.com/api_PermisosPerfil.php?idPerfil=${perfilId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al obtener permisos desde la API.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        const modulosPermitidos = data.modulos || [];
-                        console.log('Módulos permitidos:', modulosPermitidos);
-
-                        // Ocultar módulos no permitidos
-                        document.querySelectorAll('[id^="modulo-"]').forEach(modulo => {
-                            const moduloId = parseInt(modulo.id.replace('modulo-', ''));
-                            if (!modulosPermitidos.includes(moduloId)) {
-                                modulo.style.display = 'none';
+            fetch(`https://ghostwhite-wasp-985227.hostingersite.com/api_PermisosPerfil.php?idPerfil=${idPerfil}`)
+                .then(response => response.json())
+                .then(permisos => {
+                    if (permisos.length > 0) {
+                        permisos.forEach(modulo => {
+                            // Si el bitConsultar es 0, ocultar el módulo
+                            if (modulo.bitConsultar == 0) {
+                                let moduloElement = document.querySelector(`[onclick="openModule(${modulo.idModulo})"]`);
+                                if (moduloElement) {
+                                    moduloElement.style.display = 'none';
+                                }
                             }
                         });
                     } else {
-                        alert('No se pudieron cargar los permisos del perfil.');
+                        console.error('No se pudieron cargar los permisos del perfil.');
                     }
                 })
-                .catch(error => console.error('Error al obtener permisos:', error));
+                .catch(error => console.error('Error al verificar permisos:', error));
         }
 
         // Verificar permisos al cargar la página
-        document.addEventListener('DOMContentLoaded', checkPermissions);
+        window.onload = checkPermissions;
     </script>
 </body>
 
