@@ -65,6 +65,7 @@
                     const errorDiv = document.getElementById('errorMessage');
                     errorDiv.textContent = data.message || 'Error al iniciar sesión';
                     errorDiv.classList.remove('d-none');
+                    console.log(usuario, contrasena);
                 }
             })
             .catch(error => {
