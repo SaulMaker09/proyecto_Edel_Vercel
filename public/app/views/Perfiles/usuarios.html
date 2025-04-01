@@ -346,395 +346,454 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script>
-        // Variables globales
-        let usuarios = [];
-        let perfiles = [];
-        const usuarioModal = new bootstrap.Modal(document.getElementById('usuarioModal'));
-        const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+    
+<script>
+    // Variables globales
+    let usuarios = [];
+    let perfiles = [];
+    const usuarioModal = new bootstrap.Modal(document.getElementById('usuarioModal'));
+    const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar componentes
+        initPasswordToggle();
+        cargarPerfiles();
+        cargarUsuarios();
+        initFiltros();
         
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar componentes
-            initPasswordToggle();
-            cargarPerfiles();
+        // Evento para nuevo usuario
+        document.getElementById('btnNuevoUsuario').addEventListener('click', function() {
+            resetForm();
+            document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-plus me-2"></i>Nuevo Usuario';
+            document.getElementById('passwordRequired').style.display = 'inline';
+            document.getElementById('confirmPasswordRequired').style.display = 'inline';
+            document.getElementById('contrasena').required = true;
+            document.getElementById('confirmarContrasena').required = true;
+        });
+        
+        // Guardar usuario
+        document.getElementById('btnGuardarUsuario').addEventListener('click', guardarUsuario);
+        
+        // Confirmar eliminación
+        document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarUsuario);
+        
+        // Recargar tabla
+        document.getElementById('btnRecargarTabla').addEventListener('click', function() {
             cargarUsuarios();
-            initFiltros();
-            
-            // Evento para nuevo usuario
-            document.getElementById('btnNuevoUsuario').addEventListener('click', function() {
-                resetForm();
-                document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-plus me-2"></i>Nuevo Usuario';
-                document.getElementById('passwordRequired').style.display = 'inline';
-                document.getElementById('confirmPasswordRequired').style.display = 'inline';
-                document.getElementById('contrasena').required = true;
-                document.getElementById('confirmarContrasena').required = true;
+            mostrarAlerta('success', 'Tabla recargada correctamente');
+        });
+        
+        // Exportar a Excel (simulado)
+        document.getElementById('btnExportarExcel').addEventListener('click', function() {
+            mostrarAlerta('info', 'Exportando datos a Excel...');
+        });
+    });
+    
+    // Función para inicializar el toggle de contraseñas
+    function initPasswordToggle() {
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        const password = document.getElementById('contrasena');
+        const confirmPassword = document.getElementById('confirmarContrasena');
+        
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        });
+        
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        });
+    }
+    
+    // Función para cargar perfiles desde la API
+    function cargarPerfiles() {
+        fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php')
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar perfiles');
+                return response.json();
+            })
+            .then(data => {
+                perfiles = data;
+                
+                // Llenar select en el formulario
+                const selectForm = document.getElementById('idPerfil');
+                selectForm.innerHTML = '<option value="">Seleccionar perfil...</option>';
+                data.forEach(perfil => {
+                    selectForm.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
+                });
+                
+                // Llenar select en los filtros
+                const selectFiltro = document.getElementById('filtroPerfil');
+                selectFiltro.innerHTML = '<option value="">Todos los perfiles</option>';
+                data.forEach(perfil => {
+                    selectFiltro.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar perfiles:', error);
+                mostrarAlerta('danger', 'Error al cargar los perfiles');
             });
-            
-            // Guardar usuario
-            document.getElementById('btnGuardarUsuario').addEventListener('click', guardarUsuario);
-            
-            // Confirmar eliminación
-            document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarUsuario);
-            
-            // Recargar tabla
-            document.getElementById('btnRecargarTabla').addEventListener('click', function() {
-                cargarUsuarios();
-                mostrarAlerta('success', 'Tabla recargada correctamente');
+    }
+    
+    // Función para cargar usuarios desde la API
+    function cargarUsuarios(filtros = {}) {
+        let url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
+        
+        // Agregar filtros a la URL si existen
+        const params = new URLSearchParams(filtros).toString();
+        if (params) url += `?${params}`;
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar usuarios');
+                return response.json();
+            })
+            .then(data => {
+                if (!Array.isArray(data)) {
+                    console.error('Los datos recibidos no son un array:', data);
+                    throw new Error('Formato de datos inválido');
+                }
+                usuarios = data;
+                renderizarTabla(data);
+                actualizarInfoTabla(data);
+            })
+            .catch(error => {
+                console.error('Error al cargar usuarios:', error);
+                mostrarAlerta('danger', 'Error al cargar los usuarios: ' + error.message);
             });
+    }
+    
+    // Función para renderizar la tabla con los datos
+    function renderizarTabla(data) {
+        const tabla = document.querySelector('#tablaUsuarios tbody');
+        tabla.innerHTML = '';
+        
+        if (data.length === 0) {
+            tabla.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
+                        <p class="mt-2">No se encontraron usuarios</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        data.forEach(usuario => {
+            const tr = document.createElement('tr');
+            if (!usuario.activo) {
+                tr.classList.add('table-secondary');
+            }
             
-            // Exportar a Excel (simulado)
-            document.getElementById('btnExportarExcel').addEventListener('click', function() {
-                mostrarAlerta('info', 'Exportando datos a Excel...');
+            tr.innerHTML = `
+                <td>${usuario.idUsuario}</td>
+                <td>${usuario.usuario}</td>
+                <td>${usuario.nombreCompleto}</td>
+                <td>${usuario.email}</td>
+                <td>
+                    <span class="badge bg-primary">${usuario.nombrePerfil || 'Sin perfil'}</span>
+                </td>
+                <td>
+                    <span class="badge ${usuario.activo ? 'bg-success' : 'bg-danger'}">
+                        ${usuario.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <!-- Botón Editar (siempre visible) -->
+                    <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${usuario.idUsuario}" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    
+                    <!-- Botón Desactivar (solo para usuarios activos) -->
+                    ${usuario.activo ? `
+                    <button class="btn btn-sm btn-danger btn-action btn-desactivar" data-id="${usuario.idUsuario}" title="Desactivar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    ` : ''}
+                    
+                    <!-- Botón Activar (solo para usuarios inactivos) -->
+                    ${!usuario.activo ? `
+                    <button class="btn btn-sm btn-success btn-action btn-activar" data-id="${usuario.idUsuario}" title="Activar">
+                        <i class="bi bi-check-circle"></i>
+                    </button>
+                    ` : ''}
+                </td>
+            `;
+            tabla.appendChild(tr);
+        });
+        
+        // Agregar eventos a los botones
+        agregarEventosTabla();
+    }
+    
+    // Función para agregar eventos a los botones de la tabla
+    function agregarEventosTabla() {
+        // Botón Editar
+        document.querySelectorAll('.btn-editar').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                editarUsuario(id);
             });
         });
         
-        // Función para inicializar el toggle de contraseñas
-        function initPasswordToggle() {
-            const togglePassword = document.getElementById('togglePassword');
-            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-            const password = document.getElementById('contrasena');
-            const confirmPassword = document.getElementById('confirmarContrasena');
-            
-            togglePassword.addEventListener('click', function() {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        // Botón Desactivar
+        document.querySelectorAll('.btn-desactivar').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                document.getElementById('idUsuarioEliminar').value = id;
+                confirmarEliminarModal.show();
             });
-            
-            toggleConfirmPassword.addEventListener('click', function() {
-                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-                confirmPassword.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
-            });
-        }
+        });
         
-        // Función para cargar perfiles desde la API
-        function cargarPerfiles() {
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php')
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar perfiles');
-                    return response.json();
-                })
-                .then(data => {
-                    perfiles = data;
-                    
-                    // Llenar select en el formulario
-                    const selectForm = document.getElementById('idPerfil');
-                    selectForm.innerHTML = '<option value="">Seleccionar perfil...</option>';
-                    data.forEach(perfil => {
-                        selectForm.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
-                    });
-                    
-                    // Llenar select en los filtros
-                    const selectFiltro = document.getElementById('filtroPerfil');
-                    selectFiltro.innerHTML = '<option value="">Todos los perfiles</option>';
-                    data.forEach(perfil => {
-                        selectFiltro.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al cargar perfiles:', error);
-                    mostrarAlerta('danger', 'Error al cargar los perfiles');
-                });
-        }
-        
-        // Función para cargar usuarios desde la API
-        function cargarUsuarios(filtros = {}) {
-            let url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
-            
-            // Agregar filtros a la URL si existen
-            const params = new URLSearchParams(filtros).toString();
-            if (params) url += `?${params}`;
-            
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar usuarios');
-                    return response.json();
-                })
-                .then(data => {
-                    usuarios = data;
-                    renderizarTabla(data);
-                    actualizarInfoTabla(data);
-                })
-                .catch(error => {
-                    console.error('Error al cargar usuarios:', error);
-                    mostrarAlerta('danger', 'Error al cargar los usuarios');
-                });
-        }
-        
-        // Función para renderizar la tabla con los datos
-        function eliminarUsuario() {
-            const id = document.getElementById('idUsuarioEliminar').value;
-            const btn = document.getElementById('btnConfirmarEliminar');
-            
-            // Deshabilitar botón durante la operación
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-            
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
-                },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    confirmarEliminarModal.hide();
-                    cargarUsuarios();
-                    mostrarAlerta('success', 'Usuario desactivado correctamente');
-                } else {
-                    throw new Error(data.error || 'Error al desactivar el usuario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-trash me-2"></i>Desactivar';
-            });
-        }
-        
-        // Función para actualizar la información de la tabla
-        function actualizarInfoTabla(data) {
-            const infoElement = document.getElementById('dataTableInfo');
-            const total = data.length;
-            infoElement.textContent = `Mostrando 1 a ${total} de ${total} registros`;
-        }
-        
-        // Función para inicializar los filtros
-        function initFiltros() {
-            document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
-                const filtros = {
-                    perfil: document.getElementById('filtroPerfil').value,
-                    estado: document.getElementById('filtroEstado').value,
-                    busqueda: document.getElementById('buscarUsuario').value
-                };
+        // Botón Activar
+        document.querySelectorAll('.btn-activar').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const btn = this;
                 
-                cargarUsuarios(filtros);
-            });
-            
-            // Permitir buscar al presionar Enter
-            document.getElementById('buscarUsuario').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    document.getElementById('btnAplicarFiltros').click();
-                }
-            });
-        }
-        
-        // Función para editar usuario
-        function editarUsuario(id) {
-            const usuario = usuarios.find(u => u.idUsuario == id);
-            
-            if (usuario) {
-                resetForm();
-                document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-gear me-2"></i>Editar Usuario';
-                document.getElementById('idUsuario').value = usuario.idUsuario;
-                document.getElementById('usuario').value = usuario.usuario;
-                document.getElementById('nombreCompleto').value = usuario.nombreCompleto;
-                document.getElementById('email').value = usuario.email;
-                document.getElementById('idPerfil').value = usuario.idPerfil;
-                document.getElementById('passwordRequired').style.display = 'none';
-                document.getElementById('confirmPasswordRequired').style.display = 'none';
-                document.getElementById('contrasena').required = false;
-                document.getElementById('confirmarContrasena').required = false;
+                // Deshabilitar botón durante la operación
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                 
-                usuarioModal.show();
+                activarUsuario(id).finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle"></i>';
+                });
+            });
+        });
+        
+        // Inicializar tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Función para actualizar la información de la tabla
+    function actualizarInfoTabla(data) {
+        const infoElement = document.getElementById('dataTableInfo');
+        const total = data.length;
+        infoElement.textContent = `Mostrando 1 a ${total} de ${total} registros`;
+    }
+    
+    // Función para inicializar los filtros
+    function initFiltros() {
+        document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
+            const filtros = {
+                perfil: document.getElementById('filtroPerfil').value,
+                estado: document.getElementById('filtroEstado').value,
+                busqueda: document.getElementById('buscarUsuario').value
+            };
+            
+            cargarUsuarios(filtros);
+        });
+        
+        // Permitir buscar al presionar Enter
+        document.getElementById('buscarUsuario').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('btnAplicarFiltros').click();
             }
+        });
+    }
+    
+    // Función para editar usuario
+    function editarUsuario(id) {
+        const usuario = usuarios.find(u => u.idUsuario == id);
+        
+        if (usuario) {
+            resetForm();
+            document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-gear me-2"></i>Editar Usuario';
+            document.getElementById('idUsuario').value = usuario.idUsuario;
+            document.getElementById('usuario').value = usuario.usuario;
+            document.getElementById('nombreCompleto').value = usuario.nombreCompleto;
+            document.getElementById('email').value = usuario.email;
+            document.getElementById('idPerfil').value = usuario.idPerfil;
+            document.getElementById('passwordRequired').style.display = 'none';
+            document.getElementById('confirmPasswordRequired').style.display = 'none';
+            document.getElementById('contrasena').required = false;
+            document.getElementById('confirmarContrasena').required = false;
+            
+            usuarioModal.show();
+        }
+    }
+    
+    // Función para guardar usuario (crear o actualizar)
+    function guardarUsuario() {
+        const form = document.getElementById('usuarioForm');
+        
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
         }
         
-        // Función para guardar usuario (crear o actualizar)
-        function guardarUsuario() {
-            const form = document.getElementById('usuarioForm');
+        const formData = {
+            idUsuario: document.getElementById('idUsuario').value,
+            usuario: document.getElementById('usuario').value,
+            nombreCompleto: document.getElementById('nombreCompleto').value,
+            email: document.getElementById('email').value,
+            idPerfil: document.getElementById('idPerfil').value
+        };
+        
+        // Validar contraseñas si es nuevo usuario o se cambió la contraseña
+        if (!formData.idUsuario || document.getElementById('contrasena').value) {
+            const contrasena = document.getElementById('contrasena').value;
+            const confirmarContrasena = document.getElementById('confirmarContrasena').value;
             
-            if (!form.checkValidity()) {
-                form.classList.add('was-validated');
+            if (contrasena.length < 8) {
+                mostrarAlerta('warning', 'La contraseña debe tener al menos 8 caracteres');
                 return;
             }
             
-            const formData = {
-                idUsuario: document.getElementById('idUsuario').value,
-                usuario: document.getElementById('usuario').value,
-                nombreCompleto: document.getElementById('nombreCompleto').value,
-                email: document.getElementById('email').value,
-                idPerfil: document.getElementById('idPerfil').value
-            };
-            
-            // Validar contraseñas si es nuevo usuario o se cambió la contraseña
-            if (!formData.idUsuario || document.getElementById('contrasena').value) {
-                const contrasena = document.getElementById('contrasena').value;
-                const confirmarContrasena = document.getElementById('confirmarContrasena').value;
-                
-                if (contrasena.length < 8) {
-                    mostrarAlerta('warning', 'La contraseña debe tener al menos 8 caracteres');
-                    return;
-                }
-                
-                if (contrasena !== confirmarContrasena) {
-                    mostrarAlerta('warning', 'Las contraseñas no coinciden');
-                    return;
-                }
-                
-                formData.contrasena = contrasena;
+            if (contrasena !== confirmarContrasena) {
+                mostrarAlerta('warning', 'Las contraseñas no coinciden');
+                return;
             }
             
-            const url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
-            const method = formData.idUsuario ? 'PUT' : 'POST';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    usuarioModal.hide();
-                    cargarUsuarios();
-                    mostrarAlerta('success', `Usuario ${formData.idUsuario ? 'actualizado' : 'creado'} correctamente`);
-                } else {
-                    throw new Error(data.error || `Error al ${formData.idUsuario ? 'actualizar' : 'crear'} el usuario`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
-            });
+            formData.contrasena = contrasena;
         }
         
-        // Función para eliminar (desactivar) usuario
-        function eliminarUsuario() {
-            const id = document.getElementById('idUsuarioEliminar').value;
-            const btn = document.getElementById('btnConfirmarEliminar');
-            
-            // Deshabilitar botón durante la operación
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-            
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
-                },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    confirmarEliminarModal.hide();
-                    cargarUsuarios();
-                    mostrarAlerta('success', 'Usuario desactivado correctamente');
-                } else {
-                    throw new Error(data.error || 'Error al desactivar el usuario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-trash me-2"></i>Desactivar';
-            });
-        }
+        const url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
+        const method = formData.idUsuario ? 'PUT' : 'POST';
         
-        // Función para activar usuario
-        function activarUsuario(id) {
-            const btn = document.querySelector(`.btn-activar[data-id="${id}"]`);
-            if (btn.disabled) return; // Evitar múltiples clics
-            
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-            
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
-                },
-                body: JSON.stringify({ 
-                    idUsuario: parseInt(id),
-                    activo: 1
-                })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    cargarUsuarios();
-                    mostrarAlerta('success', 'Usuario activado correctamente');
-                } else {
-                    throw new Error(data.error || 'Error al activar el usuario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle"></i>';
-            });
-        }
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                usuarioModal.hide();
+                cargarUsuarios();
+                mostrarAlerta('success', `Usuario ${formData.idUsuario ? 'actualizado' : 'creado'} correctamente`);
+            } else {
+                throw new Error(data.error || `Error al ${formData.idUsuario ? 'actualizar' : 'crear'} el usuario`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('danger', error.message);
+        });
+    }
+    
+    // Función para eliminar (desactivar) usuario
+    function eliminarUsuario() {
+        const id = document.getElementById('idUsuarioEliminar').value;
+        const btn = document.getElementById('btnConfirmarEliminar');
         
-        // Función para resetear el formulario
-        function resetForm() {
-            const form = document.getElementById('usuarioForm');
-            form.reset();
-            form.classList.remove('was-validated');
-            document.getElementById('idUsuario').value = '';
-        }
+        // Deshabilitar botón durante la operación
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
         
-        // Función para mostrar alertas
-        function mostrarAlerta(tipo, mensaje) {
-            // Eliminar alertas anteriores
-            const alertasAnteriores = document.querySelectorAll('.alert-flotante');
-            alertasAnteriores.forEach(alerta => alerta.remove());
-            
-            const alerta = document.createElement('div');
-            alerta.className = `alert alert-${tipo} alert-flotante alert-dismissible fade show`;
-            alerta.role = 'alert';
-            alerta.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="bi ${tipo === 'success' ? 'bi-check-circle' : tipo === 'danger' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
-                    <div>${mensaje}</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            
-            document.body.appendChild(alerta);
-            
-            // Desaparecer después de 5 segundos
-            setTimeout(() => {
-                const bsAlert = new bootstrap.Alert(alerta);
-                bsAlert.close();
-            }, 5000);
-        }
+        fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+            },
+            body: JSON.stringify({ id: id })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                confirmarEliminarModal.hide();
+                cargarUsuarios();
+                mostrarAlerta('success', 'Usuario desactivado correctamente');
+            } else {
+                throw new Error(data.error || 'Error al desactivar el usuario');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('danger', error.message);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash me-2"></i>Desactivar';
+        });
+    }
+    
+    // Función para activar usuario
+    function activarUsuario(id) {
+        return fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+            },
+            body: JSON.stringify({ 
+                idUsuario: parseInt(id),
+                activo: 1
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                cargarUsuarios();
+                mostrarAlerta('success', 'Usuario activado correctamente');
+                return data;
+            } else {
+                throw new Error(data.error || 'Error al activar el usuario');
+            }
+        });
+    }
+    
+    // Función para resetear el formulario
+    function resetForm() {
+        const form = document.getElementById('usuarioForm');
+        form.reset();
+        form.classList.remove('was-validated');
+        document.getElementById('idUsuario').value = '';
+    }
+    
+    // Función para mostrar alertas
+    function mostrarAlerta(tipo, mensaje) {
+        // Eliminar alertas anteriores
+        const alertasAnteriores = document.querySelectorAll('.alert-flotante');
+        alertasAnteriores.forEach(alerta => alerta.remove());
         
-        // Función simulada para cargar módulos (necesaria para el breadcrumb)
-        function loadModule(module) {
-            console.log('Cargando módulo:', module);
-            return false;
-        }
-    </script>
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-flotante alert-dismissible fade show`;
+        alerta.role = 'alert';
+        alerta.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${tipo === 'success' ? 'bi-check-circle' : tipo === 'danger' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
+                <div>${mensaje}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(alerta);
+        
+        // Desaparecer después de 5 segundos
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alerta);
+            bsAlert.close();
+        }, 5000);
+    }
+    
+    // Función simulada para cargar módulos (necesaria para el breadcrumb)
+    function loadModule(module) {
+        console.log('Cargando módulo:', module);
+        return false;
+    }
+</script>
 </body>
 </html>
