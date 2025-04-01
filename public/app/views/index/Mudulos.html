@@ -1,156 +1,104 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Módulos</title>
     <style>
         body {
-            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
         }
 
-        .container {
-            margin-top: 50px;
-        }
-
-        .sidebar {
-            width: 250px;
-            position: fixed;
-            height: 100%;
-            background-color: #343a40;
-            color: white;
-        }
-
-        .sidebar a {
+        #menu {
+            background-color: #333;
             padding: 10px;
-            text-decoration: none;
-            font-size: 16px;
+            text-align: center;
+        }
+
+        #menu a {
             color: white;
-            display: block;
+            margin: 0 15px;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
 
-        .sidebar a:hover {
-            background-color: #495057;
+        #menu a:hover {
+            background-color: #555;
         }
 
-        .submenu {
-            display: none;
-            background-color: #495057;
-        }
-
-        .submenu a {
-            padding-left: 30px;
-        }
-
-        .submenu .submenu-level-2 {
-            display: none;
-            background-color: #6c757d;
-        }
-
-        .submenu .submenu-level-2 a {
-            padding-left: 50px;
-        }
-
-        .content {
-            margin-left: 260px;
+        #contenido {
             padding: 20px;
-        }
-
-        .logout-btn {
-            margin-top: 20px;
         }
     </style>
 </head>
-
-<body>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h4 class="text-center mt-3">Panel de Control</h4>
-        <a href="#" id="modulo-dashboard" onclick="openModule(1)">Dashboard</a>
-
-        <a href="#" onclick="toggleMenu('menu-usuarios')">Gestión de Usuarios <i class="fas fa-chevron-down float-right"></i></a>
-        <div id="menu-usuarios" class="submenu">
-            <a href="#" id="modulo-usuarios" onclick="openModule(2)">Usuarios</a>
-            <a href="#" id="modulo-configuracion" onclick="openModule(7)">Configuración</a>
+<body onload="checkPermissions()">
+    <!-- Menú de Módulos -->
+    <div id="menu">
+        <div id="modulos-container">
+            <!-- Los módulos se agregarán dinámicamente aquí -->
         </div>
-
-        <a href="#" onclick="toggleMenu('menu-productos')">Gestión de Productos <i class="fas fa-chevron-down float-right"></i></a>
-        <div id="menu-productos" class="submenu">
-            <a href="#" id="modulo-productos" onclick="openModule(3)">Productos</a>
-            <a href="#" id="modulo-inventario" onclick="openModule(5)">Inventario</a>
-            <a href="#" onclick="toggleMenu('menu-ventas')">Ventas <i class="fas fa-chevron-down float-right"></i></a>
-            <div id="menu-ventas" class="submenu submenu-level-2">
-                <a href="#" id="modulo-reportes" onclick="openModule(6)">Reportes</a>
-            </div>
-        </div>
-
-        <a href="/index.html" class="btn btn-danger btn-block logout-btn">Cerrar sesión</a>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="content">
-        <h2 id="module-title" class="text-center">Bienvenido</h2>
-        <p id="module-description" class="text-center">Selecciona un módulo del menú para comenzar.</p>
+    <!-- Contenido del Módulo -->
+    <div id="contenido">
+        <h2>Bienvenido al Sistema</h2>
+        <p>Selecciona un módulo del menú para comenzar.</p>
     </div>
 
+    <!-- Script para gestionar módulos dinámicos -->
     <script>
-        // Obtener idPerfil desde localStorage
-        const idPerfil = localStorage.getItem('idPerfil');
-        if (!idPerfil) {
-            window.location.href = '/public/app/views/index/Modulos.html';
-        }
+        // Simular el perfil del usuario logueado
+        const idPerfil = 1; // Cambia esto según el perfil real (Ejemplo: 1 = Admin, 2 = Usuario normal)
+        const esAdmin = idPerfil === 1; // Si es Admin (idPerfil = 1), muestra todo
 
-        // Mostrar/ocultar submenús
-        function toggleMenu(menuId) {
-            let menu = document.getElementById(menuId);
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-
-        // Abrir módulo dinámico
-        function openModule(moduloId) {
-            fetch(`getModuleContent.php?moduloId=${moduloId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('module-title').textContent = data.nombreModulo;
-                        document.getElementById('module-description').textContent = data.descripcion || 'No hay descripción disponible.';
-                    } else {
-                        alert('No tienes permisos para acceder a este módulo.');
-                    }
-                })
-                .catch(error => console.error('Error al cargar el contenido del módulo:', error));
-        }
-
-        // Verificar permisos y ocultar módulos no autorizados
+        // Función para verificar permisos y mostrar módulos
         function checkPermissions() {
             fetch(`https://ghostwhite-wasp-985227.hostingersite.com/api_PermisosPerfil.php?idPerfil=${idPerfil}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar permisos');
+                    }
+                    return response.json();
+                })
                 .then(permisos => {
                     if (permisos.length > 0) {
+                        const container = document.getElementById('modulos-container');
+                        container.innerHTML = ''; // Limpiar antes de agregar módulos dinámicos
+
                         permisos.forEach(modulo => {
-                            // Si el bitConsultar es 0, ocultar el módulo
-                            if (modulo.bitConsultar == 0 && modulo.bitAgregar == 0 && modulo.bitEditar == 0 && bitEliminar == 0) {
-                                let moduloElement = document.querySelector(`[onclick="openModule(${modulo.idModulo})"]`);
-                                console.info('Segun entro');
-                                if (moduloElement) {
-                                    moduloElement.style.display = 'none';
-                                }
+                            // Mostrar módulos solo si es Admin o tiene permiso para consultar
+                            if (esAdmin || modulo.bitConsultar == 1) {
+                                const enlaceModulo = document.createElement('a');
+                                enlaceModulo.href = '#';
+                                enlaceModulo.id = `modulo-${modulo.idModulo}`;
+                                enlaceModulo.setAttribute('onclick', `openModule(${modulo.idModulo})`);
+                                enlaceModulo.innerText = modulo.nombreModulo;
+
+                                // Agregar el enlace al contenedor
+                                container.appendChild(enlaceModulo);
                             }
                         });
                     } else {
-                        console.error('No se pudieron cargar los permisos del perfil.');
+                        console.warn('No se encontraron módulos para este perfil.');
                     }
                 })
                 .catch(error => console.error('Error al verificar permisos:', error));
         }
 
-        // Verificar permisos al cargar la página
-        window.onload = checkPermissions;
+        // Función para abrir el módulo (puedes personalizarla)
+        function openModule(idModulo) {
+            console.log(`Abriendo módulo con ID: ${idModulo}`);
+
+            // Aquí puedes cargar contenido dinámico para cada módulo
+            const contenido = document.getElementById('contenido');
+            contenido.innerHTML = `<h2>Módulo seleccionado</h2>
+                <p>Has abierto el módulo con ID: <strong>${idModulo}</strong></p>`;
+        }
     </script>
 </body>
-
 </html>
