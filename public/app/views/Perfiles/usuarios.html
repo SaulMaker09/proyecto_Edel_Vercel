@@ -96,6 +96,15 @@
         .input-group-text {
             background-color: #f8f9fc;
         }
+        
+        .alert-flotante {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -142,9 +151,7 @@
                     <div class="col-md-3">
                         <select class="form-select" id="filtroPerfil">
                             <option value="">Todos los perfiles</option>
-                            <option value="1">Administrador</option>
-                            <option value="2">Gerente</option>
-                            <option value="3">Vendedor</option>
+                            <!-- Opciones se cargarán dinámicamente -->
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -176,54 +183,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>admin</td>
-                                <td>Administrador del Sistema</td>
-                                <td>admin@sistema.com</td>
-                                <td><span class="badge bg-primary">Administrador</span></td>
-                                <td><span class="badge badge-activo">Activo</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-warning btn-action btn-editar" data-bs-toggle="tooltip" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger btn-action btn-eliminar" data-bs-toggle="tooltip" title="Desactivar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>gerente1</td>
-                                <td>Juan Pérez</td>
-                                <td>juan.perez@empresa.com</td>
-                                <td><span class="badge bg-info">Gerente</span></td>
-                                <td><span class="badge badge-activo">Activo</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-warning btn-action btn-editar" data-bs-toggle="tooltip" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger btn-action btn-eliminar" data-bs-toggle="tooltip" title="Desactivar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>vendedor1</td>
-                                <td>María González</td>
-                                <td>maria.gonzalez@empresa.com</td>
-                                <td><span class="badge bg-success">Vendedor</span></td>
-                                <td><span class="badge badge-inactivo">Inactivo</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-warning btn-action btn-editar" data-bs-toggle="tooltip" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success btn-action" data-bs-toggle="tooltip" title="Activar">
-                                        <i class="bi bi-check-circle"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            <!-- Datos se cargarán dinámicamente -->
                         </tbody>
                     </table>
                 </div>
@@ -231,13 +191,13 @@
                 <!-- Paginación -->
                 <div class="row mt-3">
                     <div class="col-md-6">
-                        <div class="dataTables_info">
-                            Mostrando 1 a 3 de 3 registros
+                        <div class="dataTables_info" id="dataTableInfo">
+                            Mostrando 0 a 0 de 0 registros
                         </div>
                     </div>
                     <div class="col-md-6">
                         <nav class="float-end">
-                            <ul class="pagination">
+                            <ul class="pagination" id="paginacion">
                                 <li class="page-item disabled">
                                     <a class="page-link" href="#" tabindex="-1">Anterior</a>
                                 </li>
@@ -258,11 +218,11 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Nuevo Usuario</h5>
+                    <h5 class="modal-title" id="modalTituloUsuario"><i class="bi bi-person-plus me-2"></i>Nuevo Usuario</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="usuarioForm">
+                    <form id="usuarioForm" class="needs-validation" novalidate>
                         <input type="hidden" id="idUsuario">
                         
                         <div class="row g-3">
@@ -271,6 +231,9 @@
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
                                     <input type="text" class="form-control" id="usuario" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese un nombre de usuario.
+                                    </div>
                                 </div>
                             </div>
                             
@@ -279,6 +242,9 @@
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
                                     <input type="text" class="form-control" id="nombreCompleto" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese el nombre completo.
+                                    </div>
                                 </div>
                             </div>
                             
@@ -287,6 +253,9 @@
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                                     <input type="email" class="form-control" id="email" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese un email válido.
+                                    </div>
                                 </div>
                             </div>
                             
@@ -296,33 +265,40 @@
                                     <span class="input-group-text"><i class="bi bi-person-lock"></i></span>
                                     <select class="form-select" id="idPerfil" required>
                                         <option value="">Seleccionar perfil...</option>
-                                        <option value="1">Administrador</option>
-                                        <option value="2">Gerente</option>
-                                        <option value="3">Vendedor</option>
+                                        <!-- Opciones se cargarán dinámicamente -->
                                     </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un perfil.
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="col-md-6">
-                                <label for="contrasena" class="form-label">Contraseña <span class="text-danger">*</span></label>
+                            <div class="col-md-6" id="contrasenaGroup">
+                                <label for="contrasena" class="form-label">Contraseña <span class="text-danger" id="passwordRequired">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" class="form-control" id="contrasena" required>
+                                    <input type="password" class="form-control" id="contrasena">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                         <i class="bi bi-eye"></i>
                                     </button>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese una contraseña.
+                                    </div>
                                 </div>
                                 <div class="form-text">Mínimo 8 caracteres</div>
                             </div>
                             
-                            <div class="col-md-6">
-                                <label for="confirmarContrasena" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                            <div class="col-md-6" id="confirmarContrasenaGroup">
+                                <label for="confirmarContrasena" class="form-label">Confirmar Contraseña <span class="text-danger" id="confirmPasswordRequired">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                                    <input type="password" class="form-control" id="confirmarContrasena" required>
+                                    <input type="password" class="form-control" id="confirmarContrasena">
                                     <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
                                         <i class="bi bi-eye"></i>
                                     </button>
+                                    <div class="invalid-feedback">
+                                        Las contraseñas no coinciden.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -371,40 +347,410 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Variables globales
+        let usuarios = [];
+        let perfiles = [];
+        const usuarioModal = new bootstrap.Modal(document.getElementById('usuarioModal'));
+        const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+        
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes
+            initPasswordToggle();
+            cargarPerfiles();
+            cargarUsuarios();
+            initFiltros();
+            
+            // Evento para nuevo usuario
+            document.getElementById('btnNuevoUsuario').addEventListener('click', function() {
+                resetForm();
+                document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-plus me-2"></i>Nuevo Usuario';
+                document.getElementById('passwordRequired').style.display = 'inline';
+                document.getElementById('confirmPasswordRequired').style.display = 'inline';
+                document.getElementById('contrasena').required = true;
+                document.getElementById('confirmarContrasena').required = true;
+            });
+            
+            // Guardar usuario
+            document.getElementById('btnGuardarUsuario').addEventListener('click', guardarUsuario);
+            
+            // Confirmar eliminación
+            document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarUsuario);
+            
+            // Recargar tabla
+            document.getElementById('btnRecargarTabla').addEventListener('click', function() {
+                cargarUsuarios();
+                mostrarAlerta('success', 'Tabla recargada correctamente');
+            });
+            
+            // Exportar a Excel (simulado)
+            document.getElementById('btnExportarExcel').addEventListener('click', function() {
+                mostrarAlerta('info', 'Exportando datos a Excel...');
+            });
+        });
+        
+        // Función para inicializar el toggle de contraseñas
+        function initPasswordToggle() {
+            const togglePassword = document.getElementById('togglePassword');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            const password = document.getElementById('contrasena');
+            const confirmPassword = document.getElementById('confirmarContrasena');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+            });
+            
+            toggleConfirmPassword.addEventListener('click', function() {
+                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPassword.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+            });
+        }
+        
+        // Función para cargar perfiles desde la API
+        function cargarPerfiles() {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar perfiles');
+                    return response.json();
+                })
+                .then(data => {
+                    perfiles = data;
+                    
+                    // Llenar select en el formulario
+                    const selectForm = document.getElementById('idPerfil');
+                    selectForm.innerHTML = '<option value="">Seleccionar perfil...</option>';
+                    data.forEach(perfil => {
+                        selectForm.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
+                    });
+                    
+                    // Llenar select en los filtros
+                    const selectFiltro = document.getElementById('filtroPerfil');
+                    selectFiltro.innerHTML = '<option value="">Todos los perfiles</option>';
+                    data.forEach(perfil => {
+                        selectFiltro.innerHTML += `<option value="${perfil.idPerfil}">${perfil.nombrePerfil}</option>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar perfiles:', error);
+                    mostrarAlerta('danger', 'Error al cargar los perfiles');
+                });
+        }
+        
+        // Función para cargar usuarios desde la API
+        function cargarUsuarios(filtros = {}) {
+            let url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
+            
+            // Agregar filtros a la URL si existen
+            const params = new URLSearchParams(filtros).toString();
+            if (params) url += `?${params}`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar usuarios');
+                    return response.json();
+                })
+                .then(data => {
+                    usuarios = data;
+                    renderizarTabla(data);
+                    actualizarInfoTabla(data);
+                })
+                .catch(error => {
+                    console.error('Error al cargar usuarios:', error);
+                    mostrarAlerta('danger', 'Error al cargar los usuarios');
+                });
+        }
+        
+        // Función para renderizar la tabla con los datos
+        function renderizarTabla(data) {
+            const tabla = document.querySelector('#tablaUsuarios tbody');
+            tabla.innerHTML = '';
+            
+            if (data.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
+                            <p class="mt-2">No se encontraron usuarios</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.forEach(usuario => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${usuario.idUsuario}</td>
+                    <td>${usuario.usuario}</td>
+                    <td>${usuario.nombreCompleto}</td>
+                    <td>${usuario.email}</td>
+                    <td>
+                        <span class="badge bg-primary">${usuario.nombrePerfil || 'Sin perfil'}</span>
+                    </td>
+                    <td>
+                        <span class="badge ${usuario.activo ? 'badge-activo' : 'badge-inactivo'}">
+                            ${usuario.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-action btn-eliminar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Desactivar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        ${!usuario.activo ? `
+                        <button class="btn btn-sm btn-success btn-action btn-activar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Activar">
+                            <i class="bi bi-check-circle"></i>
+                        </button>
+                        ` : ''}
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+            
+            // Agregar eventos a los botones
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editarUsuario(id);
+                });
+            });
+            
+            document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    document.getElementById('idUsuarioEliminar').value = id;
+                    confirmarEliminarModal.show();
+                });
+            });
+            
+            document.querySelectorAll('.btn-activar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    if (confirm('¿Está seguro que desea activar este usuario?')) {
+                        activarUsuario(id);
+                    }
+                });
+            });
+            
             // Inicializar tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
-            
-            // Toggle para mostrar/ocultar contraseñas
-            document.getElementById('togglePassword').addEventListener('click', function() {
-                const passwordInput = document.getElementById('contrasena');
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        }
+        
+        // Función para actualizar la información de la tabla
+        function actualizarInfoTabla(data) {
+            const infoElement = document.getElementById('dataTableInfo');
+            const total = data.length;
+            infoElement.textContent = `Mostrando 1 a ${total} de ${total} registros`;
+        }
+        
+        // Función para inicializar los filtros
+        function initFiltros() {
+            document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
+                const filtros = {
+                    perfil: document.getElementById('filtroPerfil').value,
+                    estado: document.getElementById('filtroEstado').value,
+                    busqueda: document.getElementById('buscarUsuario').value
+                };
+                
+                cargarUsuarios(filtros);
             });
             
-            document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
-                const passwordInput = document.getElementById('confirmarContrasena');
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+            // Permitir buscar al presionar Enter
+            document.getElementById('buscarUsuario').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('btnAplicarFiltros').click();
+                }
             });
+        }
+        
+        // Función para editar usuario
+        function editarUsuario(id) {
+            const usuario = usuarios.find(u => u.idUsuario == id);
             
-            // Simular recarga de tabla
-            document.getElementById('btnRecargarTabla').addEventListener('click', function() {
-                alert('Tabla recargada (simulación)');
+            if (usuario) {
+                resetForm();
+                document.getElementById('modalTituloUsuario').innerHTML = '<i class="bi bi-person-gear me-2"></i>Editar Usuario';
+                document.getElementById('idUsuario').value = usuario.idUsuario;
+                document.getElementById('usuario').value = usuario.usuario;
+                document.getElementById('nombreCompleto').value = usuario.nombreCompleto;
+                document.getElementById('email').value = usuario.email;
+                document.getElementById('idPerfil').value = usuario.idPerfil;
+                document.getElementById('passwordRequired').style.display = 'none';
+                document.getElementById('confirmPasswordRequired').style.display = 'none';
+                document.getElementById('contrasena').required = false;
+                document.getElementById('confirmarContrasena').required = false;
+                
+                usuarioModal.show();
+            }
+        }
+        
+        // Función para guardar usuario (crear o actualizar)
+        function guardarUsuario() {
+            const form = document.getElementById('usuarioForm');
+            
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            const formData = {
+                idUsuario: document.getElementById('idUsuario').value,
+                usuario: document.getElementById('usuario').value,
+                nombreCompleto: document.getElementById('nombreCompleto').value,
+                email: document.getElementById('email').value,
+                idPerfil: document.getElementById('idPerfil').value
+            };
+            
+            // Validar contraseñas si es nuevo usuario o se cambió la contraseña
+            if (!formData.idUsuario || document.getElementById('contrasena').value) {
+                const contrasena = document.getElementById('contrasena').value;
+                const confirmarContrasena = document.getElementById('confirmarContrasena').value;
+                
+                if (contrasena.length < 8) {
+                    mostrarAlerta('warning', 'La contraseña debe tener al menos 8 caracteres');
+                    return;
+                }
+                
+                if (contrasena !== confirmarContrasena) {
+                    mostrarAlerta('warning', 'Las contraseñas no coinciden');
+                    return;
+                }
+                
+                formData.contrasena = contrasena;
+            }
+            
+            const url = 'https://goldenrod-grouse-151833.hostingersite.com/usuarios.php';
+            const method = formData.idUsuario ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    usuarioModal.hide();
+                    cargarUsuarios();
+                    mostrarAlerta('success', `Usuario ${formData.idUsuario ? 'actualizado' : 'creado'} correctamente`);
+                } else {
+                    throw new Error(data.error || `Error al ${formData.idUsuario ? 'actualizar' : 'crear'} el usuario`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('danger', error.message);
             });
+        }
+        
+        // Función para eliminar (desactivar) usuario
+        function eliminarUsuario() {
+            const id = document.getElementById('idUsuarioEliminar').value;
             
-            // Simular exportación a Excel
-            document.getElementById('btnExportarExcel').addEventListener('click', function() {
-                alert('Exportando a Excel (simulación)');
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    confirmarEliminarModal.hide();
+                    cargarUsuarios();
+                    mostrarAlerta('success', 'Usuario desactivado correctamente');
+                } else {
+                    throw new Error(data.error || 'Error al desactivar el usuario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('danger', error.message);
             });
+        }
+        
+        // Función para activar usuario
+        function activarUsuario(id) {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+                },
+                body: JSON.stringify({ 
+                    idUsuario: id,
+                    activo: 1 
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    cargarUsuarios();
+                    mostrarAlerta('success', 'Usuario activado correctamente');
+                } else {
+                    throw new Error(data.error || 'Error al activar el usuario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('danger', error.message);
+            });
+        }
+        
+        // Función para resetear el formulario
+        function resetForm() {
+            const form = document.getElementById('usuarioForm');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('idUsuario').value = '';
+        }
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(tipo, mensaje) {
+            // Eliminar alertas anteriores
+            const alertasAnteriores = document.querySelectorAll('.alert-flotante');
+            alertasAnteriores.forEach(alerta => alerta.remove());
             
-            // Botón para nuevo usuario ya está configurado con data-bs-toggle
-        });
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo} alert-flotante alert-dismissible fade show`;
+            alerta.role = 'alert';
+            alerta.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi ${tipo === 'success' ? 'bi-check-circle' : tipo === 'danger' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
+                    <div>${mensaje}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Desaparecer después de 5 segundos
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alerta);
+                bsAlert.close();
+            }, 5000);
+        }
         
         // Función simulada para cargar módulos (necesaria para el breadcrumb)
         function loadModule(module) {
