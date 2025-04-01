@@ -1,98 +1,517 @@
-<div class="container">
-    <h1>Gestión de Módulos</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Módulos</title>
     
-    <div class="d-flex justify-content-between mb-3">
-        <button class="btn btn-primary" id="btnNuevoModulo">
-            <i class="bi bi-plus"></i> Nuevo Módulo
-        </button>
-    </div>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Nivel</th>
-                    <th>Módulo Padre</th>
-                    <th>Orden</th>
-                    <th>Ruta</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tablaModulos">
-                <!-- Datos se cargarán dinámicamente -->
-            </tbody>
-        </table>
-    </div>
-</div>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        /* Estilos iguales a usuarios.html */
+        :root {
+            --primary-color: #4e73df;
+            --danger-color: #e74a3b;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: #4e73df;
+        }
+        
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .badge-nivel1 {
+            background-color: var(--primary-color);
+        }
+        
+        .badge-nivel2 {
+            background-color: var(--success-color);
+        }
+        
+        .badge-nivel3 {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+        }
+        
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-close-white {
+            filter: invert(1);
+        }
+        
+        .page-title {
+            color: #2e3a4d;
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fc;
+        }
+        
+        .alert-flotante {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .table-secondary {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-4 py-3">
+        <!-- Encabezado -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="page-title"><i class="bi bi-layers me-2"></i>Gestión de Módulos</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#" onclick="loadModule('dashboard.html')">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Módulos</li>
+                    </ol>
+                </nav>
+            </div>
+            <button class="btn btn-primary shadow-sm" id="btnNuevoModulo" data-bs-toggle="modal" data-bs-target="#moduloModal">
+                <i class="bi bi-plus-circle me-2"></i>Nuevo Módulo
+            </button>
+        </div>
 
-<!-- Modal para agregar/editar módulo -->
-<div class="modal fade" id="moduloModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTituloModulo">Nuevo Módulo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Tarjeta de Contenido -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold"><i class="bi bi-list-ul me-2"></i>Listado de Módulos</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="#" id="btnExportarExcel"><i class="bi bi-file-excel me-2"></i>Exportar a Excel</a></li>
+                        <li><a class="dropdown-item" href="#" id="btnRecargarTabla"><i class="bi bi-arrow-clockwise me-2"></i>Recargar</a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="moduloForm">
-                    <input type="hidden" id="idModulo">
-                    <div class="mb-3">
-                        <label for="nombreModulo" class="form-label">Nombre del Módulo</label>
-                        <input type="text" class="form-control" id="nombreModulo" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="descripcionModulo" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="descripcionModulo" rows="2"></textarea>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="nivelMenu" class="form-label">Nivel de Menú</label>
-                            <select class="form-select" id="nivelMenu" required>
-                                <option value="1">Nivel 1 (Principal)</option>
-                                <option value="2">Nivel 2 (Submenú)</option>
-                                <option value="3">Nivel 3 (Sub-submenú)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="idModuloPadre" class="form-label">Módulo Padre</label>
-                            <select class="form-select" id="idModuloPadre">
-                                <option value="">Ninguno</option>
-                                <!-- Opciones se cargarán dinámicamente -->
-                            </select>
+            <div class="card-body">
+                <!-- Filtros -->
+                <div class="row mb-4 g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="buscarModulo" placeholder="Buscar...">
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="orden" class="form-label">Orden</label>
-                            <input type="number" class="form-control" id="orden" min="0" value="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="icono" class="form-label">Icono (Bootstrap Icons)</label>
-                            <input type="text" class="form-control" id="icono" placeholder="bi-house">
+                    <div class="col-md-4">
+                        <select class="form-select" id="filtroNivel">
+                            <option value="">Todos los niveles</option>
+                            <option value="1">Nivel 1</option>
+                            <option value="2">Nivel 2</option>
+                            <option value="3">Nivel 3</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-secondary w-100" id="btnAplicarFiltros">
+                            <i class="bi bi-funnel me-2"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
+                <div class="table-responsive">
+                    <table class="table table-hover" id="tablaModulos" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="20%">Nombre</th>
+                                <th width="10%">Nivel</th>
+                                <th width="20%">Módulo Padre</th>
+                                <th width="10%">Orden</th>
+                                <th width="20%">Ruta</th>
+                                <th width="15%" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="dataTables_info" id="dataTableInfo">
+                            Mostrando 0 a 0 de 0 registros
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="ruta" class="form-label">Ruta del Módulo</label>
-                        <input type="text" class="form-control" id="ruta" placeholder="ej. modulos/ventas.html">
+                    <div class="col-md-6">
+                        <nav class="float-end">
+                            <ul class="pagination" id="paginacion">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">Siguiente</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnGuardarModulo">Guardar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const moduloModal = new bootstrap.Modal(document.getElementById('moduloModal'));
+    <!-- Modal para agregar/editar módulo -->
+    <div class="modal fade" id="moduloModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTituloModulo"><i class="bi bi-layers me-2"></i>Nuevo Módulo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="moduloForm" class="needs-validation" novalidate>
+                        <input type="hidden" id="idModulo">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nombreModulo" class="form-label">Nombre <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                    <input type="text" class="form-control" id="nombreModulo" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese un nombre para el módulo.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="nivelMenu" class="form-label">Nivel <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-layer-forward"></i></span>
+                                    <select class="form-select" id="nivelMenu" required>
+                                        <option value="">Seleccionar nivel...</option>
+                                        <option value="1">Nivel 1 (Principal)</option>
+                                        <option value="2">Nivel 2 (Submenú)</option>
+                                        <option value="3">Nivel 3 (Sub-submenú)</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un nivel.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="idModuloPadre" class="form-label">Módulo Padre</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-layers-half"></i></span>
+                                    <select class="form-select" id="idModuloPadre">
+                                        <option value="">Ninguno</option>
+                                        <!-- Opciones se cargarán dinámicamente -->
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="orden" class="form-label">Orden</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-sort-numeric-up"></i></span>
+                                    <input type="number" class="form-control" id="orden" min="0" value="0">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="icono" class="form-label">Icono</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-icons"></i></span>
+                                    <input type="text" class="form-control" id="icono" placeholder="bi-house">
+                                </div>
+                                <div class="form-text">Nombre del icono de Bootstrap Icons</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="ruta" class="form-label">Ruta</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                    <input type="text" class="form-control" id="ruta" placeholder="ej. modulos/ventas.html">
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="descripcionModulo" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcionModulo" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarModulo">
+                        <i class="bi bi-save me-2"></i>Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div class="modal fade" id="confirmarEliminarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar este módulo? Esta acción no se puede deshacer.</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-info-circle me-2"></i>Si este módulo tiene submódulos asociados, también serán eliminados.
+                    </div>
+                    <input type="hidden" id="idModuloEliminar">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+                        <i class="bi bi-trash me-2"></i>Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let modulos = [];
         let modulosPadre = [];
+        const moduloModal = new bootstrap.Modal(document.getElementById('moduloModal'));
+        const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
         
-        // Cargar módulos para el select de módulos padre
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes
+            cargarModulos();
+            initFiltros();
+            
+            // Evento para nuevo módulo
+            document.getElementById('btnNuevoModulo').addEventListener('click', function() {
+                resetForm();
+                document.getElementById('modalTituloModulo').innerHTML = '<i class="bi bi-layers me-2"></i>Nuevo Módulo';
+                cargarModulosPadre(1);
+                moduloModal.show();
+            });
+            
+            // Guardar módulo
+            document.getElementById('btnGuardarModulo').addEventListener('click', guardarModulo);
+            
+            // Confirmar eliminación
+            document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarModulo);
+            
+            // Recargar tabla
+            document.getElementById('btnRecargarTabla').addEventListener('click', function() {
+                cargarModulos();
+                mostrarAlerta('success', 'Tabla recargada correctamente');
+            });
+            
+            // Exportar a Excel (simulado)
+            document.getElementById('btnExportarExcel').addEventListener('click', function() {
+                mostrarAlerta('info', 'Exportando datos a Excel...');
+            });
+            
+            // Cambiar opciones de módulos padre según nivel seleccionado
+            document.getElementById('nivelMenu').addEventListener('change', function() {
+                const nivel = parseInt(this.value);
+                cargarModulosPadre(nivel);
+            });
+        });
+        
+        // Función para cargar módulos desde la API
+        function cargarModulos(filtros = {}) {
+            let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
+            
+            // Agregar filtros a la URL si existen
+            const params = new URLSearchParams(filtros).toString();
+            if (params) url += `?${params}`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar módulos');
+                    return response.json();
+                })
+                .then(data => {
+                    if (!Array.isArray(data)) {
+                        console.error('Los datos recibidos no son un array:', data);
+                        throw new Error('Formato de datos inválido');
+                    }
+                    modulos = data;
+                    renderizarTabla(data);
+                    actualizarInfoTabla(data);
+                })
+                .catch(error => {
+                    console.error('Error al cargar módulos:', error);
+                    mostrarAlerta('danger', 'Error al cargar los módulos: ' + error.message);
+                });
+        }
+        
+        // Función para renderizar la tabla con los datos
+        function renderizarTabla(data) {
+            const tabla = document.querySelector('#tablaModulos tbody');
+            tabla.innerHTML = '';
+            
+            if (data.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
+                            <p class="mt-2">No se encontraron módulos</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.forEach(modulo => {
+                const moduloPadre = modulos.find(m => m.idModulo === modulo.idModuloPadre) || {};
+                const nivelBadgeClass = `badge-${modulo.nivelMenu === 1 ? 'nivel1' : modulo.nivelMenu === 2 ? 'nivel2' : 'nivel3'}`;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${modulo.idModulo}</td>
+                    <td>${modulo.nombreModulo}</td>
+                    <td><span class="badge ${nivelBadgeClass}">Nivel ${modulo.nivelMenu}</span></td>
+                    <td>${moduloPadre.nombreModulo || '-'}</td>
+                    <td>${modulo.orden}</td>
+                    <td>${modulo.ruta || '-'}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${modulo.idModulo}" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-action btn-eliminar" data-id="${modulo.idModulo}" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+            
+            // Agregar eventos a los botones
+            agregarEventosTabla();
+        }
+        
+        // Función para agregar eventos a los botones de la tabla
+        function agregarEventosTabla() {
+            // Botón Editar
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editarModulo(id);
+                });
+            });
+            
+            // Botón Eliminar
+            document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    document.getElementById('idModuloEliminar').value = id;
+                    confirmarEliminarModal.show();
+                });
+            });
+            
+            // Inicializar tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+        
+        // Función para actualizar la información de la tabla
+        function actualizarInfoTabla(data) {
+            const infoElement = document.getElementById('dataTableInfo');
+            const total = data.length;
+            infoElement.textContent = `Mostrando 1 a ${total} de ${total} registros`;
+        }
+        
+        // Función para inicializar los filtros
+        function initFiltros() {
+            document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
+                const filtros = {
+                    nivel: document.getElementById('filtroNivel').value,
+                    busqueda: document.getElementById('buscarModulo').value
+                };
+                
+                cargarModulos(filtros);
+            });
+            
+            // Permitir buscar al presionar Enter
+            document.getElementById('buscarModulo').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('btnAplicarFiltros').click();
+                }
+            });
+        }
+        
+        // Función para cargar módulos para el select de módulos padre
         function cargarModulosPadre(nivelDeseado = 1) {
             fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
                 .then(response => response.json())
@@ -106,127 +525,23 @@
                         const nivel = mod.nivelMenu > 1 ? ' - '.repeat(mod.nivelMenu - 1) : '';
                         select.innerHTML += `<option value="${mod.idModulo}">${nivel}${mod.nombreModulo}</option>`;
                     });
-                });
-        }
-        
-        // Cargar módulos inicialmente
-        cargarModulos();
-        
-        // Cambiar opciones de módulos padre según nivel seleccionado
-        document.getElementById('nivelMenu').addEventListener('change', function() {
-            const nivel = parseInt(this.value);
-            cargarModulosPadre(nivel);
-        });
-        
-        // Abrir modal para nuevo módulo
-        document.getElementById('btnNuevoModulo').addEventListener('click', function() {
-            document.getElementById('modalTituloModulo').textContent = 'Nuevo Módulo';
-            document.getElementById('moduloForm').reset();
-            document.getElementById('idModulo').value = '';
-            document.getElementById('nivelMenu').value = '1';
-            cargarModulosPadre(1);
-            moduloModal.show();
-        });
-        
-        // Guardar módulo
-        document.getElementById('btnGuardarModulo').addEventListener('click', function() {
-            const formData = {
-                idModulo: document.getElementById('idModulo').value,
-                nombreModulo: document.getElementById('nombreModulo').value,
-                descripcion: document.getElementById('descripcionModulo').value,
-                nivelMenu: document.getElementById('nivelMenu').value,
-                idModuloPadre: document.getElementById('idModuloPadre').value || null,
-                orden: document.getElementById('orden').value || 0,
-                icono: document.getElementById('icono').value,
-                ruta: document.getElementById('ruta').value
-            };
-            
-            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
-            const method = formData.idModulo ? 'PUT' : 'POST';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user')).idUsuario
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    moduloModal.hide();
-                    cargarModulos();
-                } else {
-                    alert('Error al guardar el módulo: ' + (data.error || ''));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al conectar con el servidor');
-            });
-        });
-        
-        // Función para cargar módulos
-        function cargarModulos() {
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
-                .then(response => response.json())
-                .then(data => {
-                    const tabla = document.getElementById('tablaModulos');
-                    tabla.innerHTML = '';
-                    
-                    data.forEach(modulo => {
-                        const moduloPadre = modulosPadre.find(m => m.idModulo === modulo.idModuloPadre) || {};
-                        
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${modulo.idModulo}</td>
-                            <td>${modulo.nombreModulo}</td>
-                            <td>${modulo.nivelMenu}</td>
-                            <td>${moduloPadre.nombreModulo || '-'}</td>
-                            <td>${modulo.orden}</td>
-                            <td>${modulo.ruta || '-'}</td>
-                            <td>
-                                <button class="btn btn-sm btn-warning btn-editar-modulo" data-id="${modulo.idModulo}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger btn-eliminar-modulo" data-id="${modulo.idModulo}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        tabla.appendChild(tr);
-                    });
-                    
-                    // Agregar eventos a los botones
-                    document.querySelectorAll('.btn-editar-modulo').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = this.getAttribute('data-id');
-                            editarModulo(id);
-                        });
-                    });
-                    
-                    document.querySelectorAll('.btn-eliminar-modulo').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = this.getAttribute('data-id');
-                            if (confirm('¿Está seguro de eliminar este módulo?')) {
-                                eliminarModulo(id);
-                            }
-                        });
-                    });
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al cargar los módulos');
+                    console.error('Error al cargar módulos padre:', error);
+                    mostrarAlerta('danger', 'Error al cargar módulos padre');
                 });
         }
         
         // Función para editar módulo
         function editarModulo(id) {
             fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php?id=${id}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar módulo');
+                    return response.json();
+                })
                 .then(modulo => {
-                    document.getElementById('modalTituloModulo').textContent = 'Editar Módulo';
+                    resetForm();
+                    document.getElementById('modalTituloModulo').innerHTML = '<i class="bi bi-layers me-2"></i>Editar Módulo';
                     document.getElementById('idModulo').value = modulo.idModulo;
                     document.getElementById('nombreModulo').value = modulo.nombreModulo;
                     document.getElementById('descripcionModulo').value = modulo.descripcion || '';
@@ -247,32 +562,139 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error al cargar el módulo');
+                    mostrarAlerta('danger', error.message);
                 });
         }
         
-        // Función para eliminar módulo
-        function eliminarModulo(id) {
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php', {
-                method: 'DELETE',
+        // Función para guardar módulo (crear o actualizar)
+        function guardarModulo() {
+            const form = document.getElementById('moduloForm');
+            
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            const formData = {
+                idModulo: document.getElementById('idModulo').value,
+                nombreModulo: document.getElementById('nombreModulo').value,
+                descripcion: document.getElementById('descripcionModulo').value,
+                nivelMenu: document.getElementById('nivelMenu').value,
+                idModuloPadre: document.getElementById('idModuloPadre').value || null,
+                orden: document.getElementById('orden').value || 0,
+                icono: document.getElementById('icono').value,
+                ruta: document.getElementById('ruta').value
+            };
+            
+            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
+            const method = formData.idModulo ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user')).idUsuario
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || ''
                 },
-                body: JSON.stringify({ id: id })
+                body: JSON.stringify(formData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
+                    moduloModal.hide();
                     cargarModulos();
+                    mostrarAlerta('success', `Módulo ${formData.idModulo ? 'actualizado' : 'creado'} correctamente`);
                 } else {
-                    alert('Error al eliminar el módulo: ' + (data.error || ''));
+                    throw new Error(data.error || `Error al ${formData.idModulo ? 'actualizar' : 'crear'} el módulo`);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error al conectar con el servidor');
+                mostrarAlerta('danger', error.message);
             });
         }
-    });
-</script>
+        
+        // Función para eliminar módulo
+        function eliminarModulo() {
+            const id = document.getElementById('idModuloEliminar').value;
+            const btn = document.getElementById('btnConfirmarEliminar');
+            
+            // Deshabilitar botón durante la operación
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || ''
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    confirmarEliminarModal.hide();
+                    cargarModulos();
+                    mostrarAlerta('success', 'Módulo eliminado correctamente');
+                } else {
+                    throw new Error(data.error || 'Error al eliminar el módulo');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('danger', error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash me-2"></i>Eliminar';
+            });
+        }
+        
+        // Función para resetear el formulario
+        function resetForm() {
+            const form = document.getElementById('moduloForm');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('idModulo').value = '';
+        }
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(tipo, mensaje) {
+            // Eliminar alertas anteriores
+            const alertasAnteriores = document.querySelectorAll('.alert-flotante');
+            alertasAnteriores.forEach(alerta => alerta.remove());
+            
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo} alert-flotante alert-dismissible fade show`;
+            alerta.role = 'alert';
+            alerta.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi ${tipo === 'success' ? 'bi-check-circle' : tipo === 'danger' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
+                    <div>${mensaje}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(alerta);
+            
+            // Desaparecer después de 5 segundos
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alerta);
+                bsAlert.close();
+            }, 5000);
+        }
+        
+        // Función simulada para cargar módulos (necesaria para el breadcrumb)
+        function loadModule(module) {
+            console.log('Cargando módulo:', module);
+            return false;
+        }
+    </script>
+</body>
+</html>
