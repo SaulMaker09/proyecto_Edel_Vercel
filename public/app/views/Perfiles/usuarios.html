@@ -463,94 +463,42 @@
         }
         
         // Función para renderizar la tabla con los datos
-        function renderizarTabla(data) {
-            const tabla = document.querySelector('#tablaUsuarios tbody');
-            tabla.innerHTML = '';
+        function eliminarUsuario() {
+            const id = document.getElementById('idUsuarioEliminar').value;
+            const btn = document.getElementById('btnConfirmarEliminar');
             
-            if (data.length === 0) {
-                tabla.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
-                            <p class="mt-2">No se encontraron usuarios</p>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+            // Deshabilitar botón durante la operación
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             
-            data.forEach(usuario => {
-                const tr = document.createElement('tr');
-                if (!usuario.activo) {
-                    tr.classList.add('table-secondary');
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    confirmarEliminarModal.hide();
+                    cargarUsuarios();
+                    mostrarAlerta('success', 'Usuario desactivado correctamente');
+                } else {
+                    throw new Error(data.error || 'Error al desactivar el usuario');
                 }
-                
-                tr.innerHTML = `
-                    <td>${usuario.idUsuario}</td>
-                    <td>${usuario.usuario}</td>
-                    <td>${usuario.nombreCompleto}</td>
-                    <td>${usuario.email}</td>
-                    <td>
-                        <span class="badge bg-primary">${usuario.nombrePerfil || 'Sin perfil'}</span>
-                    </td>
-                    <td>
-                        <span class="badge ${usuario.activo ? 'bg-success' : 'bg-danger'}">
-                            ${usuario.activo ? 'Activo' : 'Inactivo'}
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        <!-- Botón Editar (siempre visible) -->
-                        <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${usuario.idUsuario}" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        
-                        <!-- Botón Desactivar (solo para usuarios activos) -->
-                        ${usuario.activo ? `
-                        <button class="btn btn-sm btn-danger btn-action btn-desactivar" data-id="${usuario.idUsuario}" title="Desactivar">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        ` : ''}
-                        
-                        <!-- Botón Activar (solo para usuarios inactivos) -->
-                        ${!usuario.activo ? `
-                        <button class="btn btn-sm btn-success btn-action btn-activar" data-id="${usuario.idUsuario}" title="Activar">
-                            <i class="bi bi-check-circle"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                tabla.appendChild(tr);
-            });
-            
-            // Agregar eventos a los botones
-            document.querySelectorAll('.btn-editar').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    editarUsuario(id);
-                });
-            });
-            
-            document.querySelectorAll('.btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    document.getElementById('idUsuarioEliminar').value = id;
-                    confirmarEliminarModal.show();
-                });
-            });
-            
-            document.querySelectorAll('.btn-activar').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    if (confirm('¿Está seguro que desea activar este usuario?')) {
-                        activarUsuario(id);
-                    }
-                });
-            });
-            
-            // Inicializar tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarAlerta('danger', error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash me-2"></i>Desactivar';
             });
         }
         
@@ -670,6 +618,11 @@
         // Función para eliminar (desactivar) usuario
         function eliminarUsuario() {
             const id = document.getElementById('idUsuarioEliminar').value;
+            const btn = document.getElementById('btnConfirmarEliminar');
+            
+            // Deshabilitar botón durante la operación
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             
             fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
                 method: 'DELETE',
@@ -695,11 +648,21 @@
             .catch(error => {
                 console.error('Error:', error);
                 mostrarAlerta('danger', error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash me-2"></i>Desactivar';
             });
         }
         
         // Función para activar usuario
         function activarUsuario(id) {
+            const btn = document.querySelector(`.btn-activar[data-id="${id}"]`);
+            if (btn.disabled) return; // Evitar múltiples clics
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            
             fetch('https://goldenrod-grouse-151833.hostingersite.com/usuarios.php', {
                 method: 'PUT',
                 headers: {
@@ -707,8 +670,8 @@
                     'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
                 },
                 body: JSON.stringify({ 
-                    idUsuario: id,
-                    activo: 1 // Solo enviamos estos dos campos para reactivación
+                    idUsuario: parseInt(id),
+                    activo: 1
                 })
             })
             .then(response => {
@@ -726,6 +689,10 @@
             .catch(error => {
                 console.error('Error:', error);
                 mostrarAlerta('danger', error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i>';
             });
         }
         
