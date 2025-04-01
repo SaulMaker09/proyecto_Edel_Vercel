@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #212529;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-menu li a {
+            color: white;
+            padding: 10px 15px;
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .sidebar-menu li a:hover {
+            background-color: #495057;
+        }
+        .sidebar-menu li a i {
+            margin-right: 10px;
+        }
+        .submenu {
+            list-style: none;
+            padding-left: 20px;
+            display: none;
+        }
+        .submenu li a {
+            padding: 8px 15px;
+        }
+        .active > .submenu {
+            display: block;
+        }
+        .user-info {
+            padding: 15px;
+            border-bottom: 1px solid #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h4>Sistema de Gestión</h4>
+        </div>
+        <div class="user-info">
+            <p class="mb-1" id="userName"></p>
+            <small id="userRole"></small>
+        </div>
+        <ul class="sidebar-menu" id="menuContainer">
+            <!-- Menú se generará dinámicamente -->
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="container-fluid">
+            <h3 id="moduleTitle">Bienvenido al Sistema</h3>
+            <div id="moduleContent">
+                <p>Seleccione un módulo del menú para comenzar.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const menu = JSON.parse(localStorage.getItem('menu'));
+            
+            if (!user || !menu) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar información del usuario
+            document.getElementById('userName').textContent = user.nombreCompleto;
+            document.getElementById('userRole').textContent = user.nombrePerfil;
+            
+            // Generar menú
+            const menuContainer = document.getElementById('menuContainer');
+            
+            menu.forEach(item => {
+                const menuItem = document.createElement('li');
+                
+                if (item.submodulos && item.submodulos.length > 0) {
+                    menuItem.innerHTML = `
+                        <a href="#" class="dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#submenu-${item.idModulo}">
+                            <i class="bi ${item.icono || 'bi-folder'}"></i> ${item.nombreModulo}
+                        </a>
+                        <ul class="submenu collapse" id="submenu-${item.idModulo}">
+                            ${item.submodulos.map(sub => `
+                                <li><a href="#" data-module="${sub.ruta}"><i class="bi ${sub.icono || 'bi-file-earmark'}"></i> ${sub.nombreModulo}</a></li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    menuItem.innerHTML = `
+                        <a href="#" data-module="${item.ruta}">
+                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i> ${item.nombreModulo}
+                        </a>
+                    `;
+                }
+                
+                menuContainer.appendChild(menuItem);
+            });
+            
+            // Manejar clic en módulos
+            document.querySelectorAll('[data-module]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const modulePath = this.getAttribute('data-module');
+                    loadModule(modulePath);
+                });
+            });
+            
+            // Función para cargar módulos
+            function loadModule(modulePath) {
+                fetch(modulePath)
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('moduleContent').innerHTML = html;
+                        document.getElementById('moduleTitle').textContent = 
+                            document.querySelector('h1').textContent;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar el módulo:', error);
+                        document.getElementById('moduleContent').innerHTML = `
+                            <div class="alert alert-danger">
+                                Error al cargar el módulo. Intente nuevamente.
+                            </div>
+                        `;
+                    });
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

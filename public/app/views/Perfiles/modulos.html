@@ -1,0 +1,278 @@
+<div class="container">
+    <h1>Gestión de Módulos</h1>
+    
+    <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-primary" id="btnNuevoModulo">
+            <i class="bi bi-plus"></i> Nuevo Módulo
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Nivel</th>
+                    <th>Módulo Padre</th>
+                    <th>Orden</th>
+                    <th>Ruta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaModulos">
+                <!-- Datos se cargarán dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar módulo -->
+<div class="modal fade" id="moduloModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTituloModulo">Nuevo Módulo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="moduloForm">
+                    <input type="hidden" id="idModulo">
+                    <div class="mb-3">
+                        <label for="nombreModulo" class="form-label">Nombre del Módulo</label>
+                        <input type="text" class="form-control" id="nombreModulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionModulo" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionModulo" rows="2"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nivelMenu" class="form-label">Nivel de Menú</label>
+                            <select class="form-select" id="nivelMenu" required>
+                                <option value="1">Nivel 1 (Principal)</option>
+                                <option value="2">Nivel 2 (Submenú)</option>
+                                <option value="3">Nivel 3 (Sub-submenú)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="idModuloPadre" class="form-label">Módulo Padre</label>
+                            <select class="form-select" id="idModuloPadre">
+                                <option value="">Ninguno</option>
+                                <!-- Opciones se cargarán dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="orden" class="form-label">Orden</label>
+                            <input type="number" class="form-control" id="orden" min="0" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="icono" class="form-label">Icono (Bootstrap Icons)</label>
+                            <input type="text" class="form-control" id="icono" placeholder="bi-house">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ruta" class="form-label">Ruta del Módulo</label>
+                        <input type="text" class="form-control" id="ruta" placeholder="ej. modulos/ventas.html">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarModulo">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const moduloModal = new bootstrap.Modal(document.getElementById('moduloModal'));
+        let modulosPadre = [];
+        
+        // Cargar módulos para el select de módulos padre
+        function cargarModulosPadre(nivelDeseado = 1) {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
+                .then(response => response.json())
+                .then(data => {
+                    modulosPadre = data;
+                    
+                    const select = document.getElementById('idModuloPadre');
+                    select.innerHTML = '<option value="">Ninguno</option>';
+                    
+                    data.filter(mod => mod.nivelMenu < nivelDeseado).forEach(mod => {
+                        const nivel = mod.nivelMenu > 1 ? ' - '.repeat(mod.nivelMenu - 1) : '';
+                        select.innerHTML += `<option value="${mod.idModulo}">${nivel}${mod.nombreModulo}</option>`;
+                    });
+                });
+        }
+        
+        // Cargar módulos inicialmente
+        cargarModulos();
+        
+        // Cambiar opciones de módulos padre según nivel seleccionado
+        document.getElementById('nivelMenu').addEventListener('change', function() {
+            const nivel = parseInt(this.value);
+            cargarModulosPadre(nivel);
+        });
+        
+        // Abrir modal para nuevo módulo
+        document.getElementById('btnNuevoModulo').addEventListener('click', function() {
+            document.getElementById('modalTituloModulo').textContent = 'Nuevo Módulo';
+            document.getElementById('moduloForm').reset();
+            document.getElementById('idModulo').value = '';
+            document.getElementById('nivelMenu').value = '1';
+            cargarModulosPadre(1);
+            moduloModal.show();
+        });
+        
+        // Guardar módulo
+        document.getElementById('btnGuardarModulo').addEventListener('click', function() {
+            const formData = {
+                idModulo: document.getElementById('idModulo').value,
+                nombreModulo: document.getElementById('nombreModulo').value,
+                descripcion: document.getElementById('descripcionModulo').value,
+                nivelMenu: document.getElementById('nivelMenu').value,
+                idModuloPadre: document.getElementById('idModuloPadre').value || null,
+                orden: document.getElementById('orden').value || 0,
+                icono: document.getElementById('icono').value,
+                ruta: document.getElementById('ruta').value
+            };
+            
+            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
+            const method = formData.idModulo ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user')).idUsuario
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    moduloModal.hide();
+                    cargarModulos();
+                } else {
+                    alert('Error al guardar el módulo: ' + (data.error || ''));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            });
+        });
+        
+        // Función para cargar módulos
+        function cargarModulos() {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tabla = document.getElementById('tablaModulos');
+                    tabla.innerHTML = '';
+                    
+                    data.forEach(modulo => {
+                        const moduloPadre = modulosPadre.find(m => m.idModulo === modulo.idModuloPadre) || {};
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${modulo.idModulo}</td>
+                            <td>${modulo.nombreModulo}</td>
+                            <td>${modulo.nivelMenu}</td>
+                            <td>${moduloPadre.nombreModulo || '-'}</td>
+                            <td>${modulo.orden}</td>
+                            <td>${modulo.ruta || '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning btn-editar-modulo" data-id="${modulo.idModulo}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btn-eliminar-modulo" data-id="${modulo.idModulo}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tabla.appendChild(tr);
+                    });
+                    
+                    // Agregar eventos a los botones
+                    document.querySelectorAll('.btn-editar-modulo').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = this.getAttribute('data-id');
+                            editarModulo(id);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.btn-eliminar-modulo').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = this.getAttribute('data-id');
+                            if (confirm('¿Está seguro de eliminar este módulo?')) {
+                                eliminarModulo(id);
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los módulos');
+                });
+        }
+        
+        // Función para editar módulo
+        function editarModulo(id) {
+            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php?id=${id}`)
+                .then(response => response.json())
+                .then(modulo => {
+                    document.getElementById('modalTituloModulo').textContent = 'Editar Módulo';
+                    document.getElementById('idModulo').value = modulo.idModulo;
+                    document.getElementById('nombreModulo').value = modulo.nombreModulo;
+                    document.getElementById('descripcionModulo').value = modulo.descripcion || '';
+                    document.getElementById('nivelMenu').value = modulo.nivelMenu;
+                    document.getElementById('orden').value = modulo.orden;
+                    document.getElementById('icono').value = modulo.icono || '';
+                    document.getElementById('ruta').value = modulo.ruta || '';
+                    
+                    // Cargar módulos padre según el nivel
+                    cargarModulosPadre(modulo.nivelMenu);
+                    
+                    // Establecer el módulo padre actual después de cargar las opciones
+                    setTimeout(() => {
+                        document.getElementById('idModuloPadre').value = modulo.idModuloPadre || '';
+                    }, 100);
+                    
+                    moduloModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar el módulo');
+                });
+        }
+        
+        // Función para eliminar módulo
+        function eliminarModulo(id) {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('user')).idUsuario
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cargarModulos();
+                } else {
+                    alert('Error al eliminar el módulo: ' + (data.error || ''));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            });
+        }
+    });
+</script>
