@@ -481,6 +481,10 @@
             
             data.forEach(usuario => {
                 const tr = document.createElement('tr');
+                if (!usuario.activo) {
+                    tr.classList.add('table-secondary');
+                }
+                
                 tr.innerHTML = `
                     <td>${usuario.idUsuario}</td>
                     <td>${usuario.usuario}</td>
@@ -490,19 +494,26 @@
                         <span class="badge bg-primary">${usuario.nombrePerfil || 'Sin perfil'}</span>
                     </td>
                     <td>
-                        <span class="badge ${usuario.activo ? 'badge-activo' : 'badge-inactivo'}">
+                        <span class="badge ${usuario.activo ? 'bg-success' : 'bg-danger'}">
                             ${usuario.activo ? 'Activo' : 'Inactivo'}
                         </span>
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Editar">
+                        <!-- Botón Editar (siempre visible) -->
+                        <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${usuario.idUsuario}" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger btn-action btn-eliminar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Desactivar">
+                        
+                        <!-- Botón Desactivar (solo para usuarios activos) -->
+                        ${usuario.activo ? `
+                        <button class="btn btn-sm btn-danger btn-action btn-desactivar" data-id="${usuario.idUsuario}" title="Desactivar">
                             <i class="bi bi-trash"></i>
                         </button>
+                        ` : ''}
+                        
+                        <!-- Botón Activar (solo para usuarios inactivos) -->
                         ${!usuario.activo ? `
-                        <button class="btn btn-sm btn-success btn-action btn-activar" data-id="${usuario.idUsuario}" data-bs-toggle="tooltip" title="Activar">
+                        <button class="btn btn-sm btn-success btn-action btn-activar" data-id="${usuario.idUsuario}" title="Activar">
                             <i class="bi bi-check-circle"></i>
                         </button>
                         ` : ''}
