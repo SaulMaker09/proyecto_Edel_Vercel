@@ -32,6 +32,9 @@
             padding: 20px;
             background-color: #212529;
             border-bottom: 1px solid #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .sidebar-menu {
             list-style: none;
@@ -65,7 +68,7 @@
             transition: max-height 0.3s ease-out;
         }
         .sidebar-menu .submenu.show {
-            max-height: 500px; /* Ajusta según necesidad */
+            max-height: 500px;
         }
         .sidebar-menu .submenu .nav-link {
             padding: 0.5rem 1rem;
@@ -74,6 +77,19 @@
         .user-info {
             padding: 15px;
             border-bottom: 1px solid #495057;
+            position: relative;
+        }
+        .logout-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            color: #fff;
         }
         .module-content {
             background: white;
@@ -90,8 +106,13 @@
             <h4>Sistema de Gestión</h4>
         </div>
         <div class="user-info">
-            <p class="mb-1" id="userName"></p>
-            <small id="userRole"></small>
+            <div>
+                <p class="mb-1" id="userName"></p>
+                <small id="userRole"></small>
+            </div>
+            <button class="logout-btn" id="logoutBtn" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
         </div>
         <ul class="sidebar-menu" id="menuContainer">
             <!-- Menú se generará dinámicamente -->
@@ -128,7 +149,7 @@
             document.getElementById('userRole').textContent = user.nombrePerfil;
             
             // Generar el menú
-            generarMenu(menuData);
+            generarMenu(menuData, user.idPerfil);
             
             // Manejar clic en módulos
             document.addEventListener('click', function(e) {
@@ -154,11 +175,53 @@
                 }
             });
             
+            // Botón de cerrar sesión
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('user');
+                localStorage.removeItem('menu');
+                window.location.href = './login.html';
+            });
+            
             // Función para generar el menú
-            function generarMenu(menu) {
+            function generarMenu(menu, idPerfil) {
                 const menuContainer = document.getElementById('menuContainer');
                 menuContainer.innerHTML = '';
                 
+                // Menú de Administración (solo para admin)
+                if (idPerfil === 1) { // Asumiendo que 1 es el ID del perfil admin
+                    menuContainer.innerHTML += `
+                        <li class="nav-item">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                               data-bs-target="#submenu-admin">
+                                <i class="bi bi-gear"></i>
+                                <span>Administración</span>
+                                <i class="bi bi-chevron-down dropdown-icon ms-auto"></i>
+                            </a>
+                            <ul class="submenu collapse" id="submenu-admin">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" data-module="usuarios.html">
+                                        <i class="bi bi-people"></i>
+                                        <span>Usuarios</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" data-module="perfiles.html">
+                                        <i class="bi bi-person-lock"></i>
+                                        <span>Perfiles</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" data-module="modulos.html">
+                                        <i class="bi bi-menu-button"></i>
+                                        <span>Módulos</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    `;
+                }
+                
+                // Resto del menú dinámico
                 menu.forEach(item => {
                     const menuItem = document.createElement('li');
                     menuItem.className = 'nav-item';
