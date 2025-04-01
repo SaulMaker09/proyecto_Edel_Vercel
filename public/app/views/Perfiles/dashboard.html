@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" 
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    
-    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    
     <style>
         :root {
             --sidebar-width: 280px;
             --primary-color: #4e73df;
             --danger-color: #e74a3b;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
         }
         
         body {
@@ -29,12 +25,64 @@
         /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
-            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
             color: white;
             height: 100vh;
             position: fixed;
             overflow-y: auto;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: width 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            --sidebar-width: 80px;
+            overflow: hidden;
+        }
+        
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .dropdown-icon {
+            display: none;
+        }
+        
+        .sidebar-collapsed .sidebar-header {
+            font-size: 0;
+        }
+        
+        .sidebar-collapsed .sidebar-header::after {
+            content: "SG";
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-collapsed .user-info {
+            padding: 0.5rem;
+        }
+        
+        .sidebar-collapsed .user-info img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 0;
+        }
+        
+        .sidebar-collapsed .user-name,
+        .sidebar-collapsed .user-role,
+        .sidebar-collapsed .logout-btn span {
+            display: none;
+        }
+        
+        .sidebar-collapsed .logout-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 0;
+            justify-content: center;
+        }
+        
+        .sidebar-collapsed .nav-link {
+            justify-content: center;
+        }
+        
+        .sidebar-collapsed .submenu .nav-link {
+            padding-left: 1rem;
         }
         
         .sidebar-header {
@@ -45,6 +93,7 @@
             font-size: 1.2rem;
             letter-spacing: 0.05rem;
             text-transform: uppercase;
+            transition: all 0.3s;
         }
         
         .user-info {
@@ -52,6 +101,7 @@
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            transition: all 0.3s;
         }
         
         .user-info img {
@@ -60,18 +110,21 @@
             border-radius: 50%;
             border: 4px solid rgba(255, 255, 255, 0.2);
             margin-bottom: 1rem;
+            transition: all 0.3s;
         }
         
         .user-name {
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 0.25rem;
+            transition: all 0.3s;
         }
         
         .user-role {
             font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 1rem;
+            transition: all 0.3s;
         }
         
         .logout-btn {
@@ -164,6 +217,29 @@
             padding: 2rem;
             background-color: #f8f9fa;
             min-height: 100vh;
+            transition: margin-left 0.3s;
+        }
+        
+        .toggle-sidebar {
+            position: fixed;
+            top: 1rem;
+            left: calc(var(--sidebar-width) - 30px);
+            z-index: 1000;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed + .main-content .toggle-sidebar {
+            left: 50px;
         }
         
         .page-header {
@@ -187,7 +263,6 @@
             border-radius: 0.35rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             margin-bottom: 2rem;
-            background-color: #fff;
         }
         
         .card-header {
@@ -195,96 +270,11 @@
             border-bottom: 1px solid #e3e6f0;
             padding: 1.25rem 1.5rem;
             font-weight: 600;
-            color: #4e73df;
+            color: var(--primary-color);
         }
         
         .card-body {
             padding: 1.5rem;
-        }
-        
-        /* Tablas */
-        .table-responsive {
-            border-radius: 0.35rem;
-            overflow: hidden;
-        }
-        
-        .table {
-            margin-bottom: 0;
-            width: 100%;
-        }
-        
-        .table thead th {
-            background-color: #4e73df;
-            color: white;
-            border: none;
-            font-weight: 600;
-            padding: 1rem;
-        }
-        
-        .table tbody td {
-            padding: 1rem;
-            vertical-align: middle;
-            border-top: 1px solid #e3e6f0;
-        }
-        
-        .table tbody tr:hover {
-            background-color: rgba(78, 115, 223, 0.05);
-        }
-        
-        /* Botones */
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #3a5ccc;
-            border-color: #3a5ccc;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-danger:hover {
-            background-color: #c23a2e;
-            border-color: #c23a2e;
-        }
-        
-        /* Badges */
-        .badge {
-            padding: 0.35em 0.65em;
-            font-weight: 600;
-        }
-        
-        /* Modal */
-        .modal-content {
-            border: none;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            background-color: var(--primary-color);
-            color: white;
-            border-bottom: none;
-            border-radius: 0.5rem 0.5rem 0 0;
-        }
-        
-        .modal-title {
-            font-weight: 600;
-        }
-        
-        .close {
-            color: white;
-            text-shadow: none;
-            opacity: 0.8;
-        }
-        
-        .close:hover {
-            color: white;
-            opacity: 1;
         }
         
         /* Responsive */
@@ -298,83 +288,388 @@
             .main-content {
                 margin-left: 0;
             }
+            
+            .toggle-sidebar {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             Sistema de Gestión
         </div>
         <div class="user-info">
-            <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Usuario">
-            <div class="user-name" id="userName">Nombre Usuario</div>
-            <div class="user-role" id="userRole">Administrador</div>
+            <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Usuario" id="userAvatar">
+            <div class="user-name" id="userName"></div>
+            <div class="user-role" id="userRole"></div>
             <button class="logout-btn" id="logoutBtn">
-                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                <i class="bi bi-box-arrow-right"></i> <span class="sidebar-text">Cerrar Sesión</span>
             </button>
         </div>
         <ul class="sidebar-menu" id="menuContainer">
-            <li class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                   data-bs-target="#submenu-admin" aria-expanded="false" aria-controls="submenu-admin">
-                    <i class="bi bi-gear"></i>
-                    <span>Administración</span>
-                    <i class="bi bi-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="submenu collapse show" id="submenu-admin">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link active" data-module="usuarios.html">
-                            <i class="bi bi-people"></i>
-                            <span>Usuarios</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-module="perfiles.html">
-                            <i class="bi bi-person-lock"></i>
-                            <span>Perfiles</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-module="modulos.html">
-                            <i class="bi bi-menu-button"></i>
-                            <span>Módulos</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            <!-- Menú se generará dinámicamente -->
         </ul>
     </div>
+
+    <!-- Toggle Sidebar Button -->
+    <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="bi bi-chevron-left" id="toggleIcon"></i>
+    </button>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="container-fluid">
             <div class="page-header">
-                <h1 class="page-title" id="moduleTitle">Gestión de Usuarios</h1>
+                <h1 class="page-title" id="moduleTitle">Bienvenido al Sistema</h1>
+                <div id="breadcrumb" class="breadcrumb"></div>
             </div>
             <div class="card">
                 <div class="card-body" id="moduleContent">
-                    <p>Contenido de la gestión de usuarios aparecerá aquí...</p>
+                    <div class="text-center py-5">
+                        <i class="bi bi-house-door" style="font-size: 3rem; color: var(--primary-color);"></i>
+                        <h3 class="mt-3">Seleccione un módulo del menú para comenzar</h3>
+                        <p class="text-muted">Su panel de control muestra información relevante según sus permisos</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
-            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
-            crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Script para el dashboard -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Ejemplo de funcionalidad básica
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                alert('Sesión cerrada (simulado)');
+            // Elementos del DOM
+            const sidebar = document.getElementById('sidebar');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const menuContainer = document.getElementById('menuContainer');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            const userAvatar = document.getElementById('userAvatar');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const moduleTitle = document.getElementById('moduleTitle');
+            const moduleContent = document.getElementById('moduleContent');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            // Verificar autenticación
+            checkAuth();
+
+            // Función para verificar autenticación
+            function checkAuth() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const menuData = JSON.parse(localStorage.getItem('menu'));
+                
+                if (!user || !menuData) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                // Mostrar información del usuario
+                displayUserInfo(user);
+                
+                // Generar el menú según permisos
+                generateMenu(menuData, user.idPerfil);
+                
+                // Cargar módulo inicial si hay uno en la URL
+                loadInitialModule();
+            }
+
+            // Mostrar información del usuario
+            function displayUserInfo(user) {
+                userName.textContent = user.nombreCompleto;
+                userRole.textContent = user.nombrePerfil;
+                
+                // Generar avatar si no hay imagen
+                if (!user.avatar) {
+                    const initials = user.nombreCompleto.split(' ').map(n => n[0]).join('');
+                    userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&background=random`;
+                }
+            }
+
+            // Generar menú dinámico
+            function generateMenu(menu, profileId) {
+                menuContainer.innerHTML = '';
+                
+                // Menú de Administración (solo para admin)
+                if (profileId === 1) {
+                    addAdminMenu();
+                }
+                
+                // Resto del menú dinámico
+                menu.forEach(item => {
+                    createMenuItem(item);
+                });
+            }
+
+            // Añadir menú de administración
+            function addAdminMenu() {
+                const adminItem = document.createElement('li');
+                adminItem.className = 'nav-item';
+                adminItem.innerHTML = `
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                       data-bs-target="#submenu-admin" aria-expanded="false" aria-controls="submenu-admin">
+                        <i class="bi bi-gear"></i>
+                        <span class="sidebar-text">Administración</span>
+                        <i class="bi bi-chevron-down dropdown-icon"></i>
+                    </a>
+                    <ul class="submenu collapse" id="submenu-admin">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-module="usuarios.html" data-title="Gestión de Usuarios">
+                                <i class="bi bi-people"></i>
+                                <span class="sidebar-text">Usuarios</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-module="perfiles.html" data-title="Gestión de Perfiles">
+                                <i class="bi bi-person-lock"></i>
+                                <span class="sidebar-text">Perfiles</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-module="modulos.html" data-title="Gestión de Módulos">
+                                <i class="bi bi-menu-button"></i>
+                                <span class="sidebar-text">Módulos</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-module="permisos.html" data-title="Gestión de Permisos">
+                                <i class="bi bi-shield-lock"></i>
+                                <span class="sidebar-text">Permisos</span>
+                            </a>
+                        </li>
+                    </ul>
+                `;
+                menuContainer.appendChild(adminItem);
+            }
+
+            // Crear elemento de menú
+            function createMenuItem(item) {
+                const menuItem = document.createElement('li');
+                menuItem.className = 'nav-item';
+                
+                if (item.submodulos && item.submodulos.length > 0) {
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                           data-bs-target="#submenu-${item.idModulo}" aria-expanded="false" aria-controls="submenu-${item.idModulo}">
+                            <i class="bi ${item.icono || 'bi-folder'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                            <i class="bi bi-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="submenu collapse" id="submenu-${item.idModulo}">
+                            ${item.submodulos.map(sub => `
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" data-module="${sub.ruta}" data-title="${sub.nombreModulo}">
+                                        <i class="bi ${sub.icono || 'bi-file-earmark'}"></i>
+                                        <span class="sidebar-text">${sub.nombreModulo}</span>
+                                    </a>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
+                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                        </a>
+                    `;
+                }
+                
+                menuContainer.appendChild(menuItem);
+            }
+
+            // Cargar módulo inicial
+            function loadInitialModule() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const moduleParam = urlParams.get('module');
+                
+                if (moduleParam) {
+                    // Buscar el módulo en el menú
+                    const menuLink = document.querySelector(`[data-module="${moduleParam}"]`);
+                    if (menuLink) {
+                        menuLink.click();
+                    }
+                }
+            }
+
+            // Función para cargar módulos
+            function loadModule(modulePath, moduleTitleText) {
+                fetch(modulePath)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Módulo no encontrado');
+                        return response.text();
+                    })
+                    .then(html => {
+                        moduleContent.innerHTML = html;
+                        moduleTitle.textContent = moduleTitleText;
+                        updateBreadcrumb(moduleTitleText);
+                        
+                        // Actualizar URL sin recargar la página
+                        history.pushState(null, '', `?module=${modulePath}`);
+                        
+                        // Inicializar tooltips y otros plugins de Bootstrap
+                        initBootstrapPlugins();
+                        
+                        // Ejecutar scripts del módulo cargado
+                        executeModuleScripts();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showError(error.message);
+                    });
+            }
+
+            // Actualizar breadcrumb
+            function updateBreadcrumb(title) {
+                breadcrumb.innerHTML = `
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#" id="homeBreadcrumb">Inicio</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">${title}</li>
+                        </ol>
+                    </nav>
+                `;
+                
+                // Evento para volver al inicio
+                document.getElementById('homeBreadcrumb')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    resetDashboard();
+                });
+            }
+
+            // Resetear dashboard a estado inicial
+            function resetDashboard() {
+                moduleTitle.textContent = 'Bienvenido al Sistema';
+                moduleContent.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-house-door" style="font-size: 3rem; color: var(--primary-color);"></i>
+                        <h3 class="mt-3">Seleccione un módulo del menú para comenzar</h3>
+                        <p class="text-muted">Su panel de control muestra información relevante según sus permisos</p>
+                    </div>
+                `;
+                breadcrumb.innerHTML = '';
+                history.pushState(null, '', window.location.pathname);
+                
+                // Remover clase active de todos los items del menú
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+            }
+
+            // Mostrar error
+            function showError(message) {
+                moduleContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Error al cargar el módulo: ${message}
+                    </div>
+                    <button class="btn btn-primary mt-3" onclick="window.location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> Recargar
+                    </button>
+                `;
+            }
+
+            // Inicializar plugins de Bootstrap
+            function initBootstrapPlugins() {
+                // Tooltips
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+                
+                // Popovers
+                const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+                popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl);
+                });
+            }
+
+            // Ejecutar scripts de módulos cargados
+            function executeModuleScripts() {
+                const scripts = moduleContent.getElementsByTagName('script');
+                for (let script of scripts) {
+                    try {
+                        // Crear un nuevo script y copiar atributos
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        
+                        // Copiar todos los atributos
+                        for (let attr of script.attributes) {
+                            newScript.setAttribute(attr.name, attr.value);
+                        }
+                        
+                        document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                    } catch (error) {
+                        console.error('Error ejecutando script:', error);
+                    }
+                }
+            }
+
+            // Event Listeners
+            toggleSidebar.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                toggleIcon.classList.toggle('bi-chevron-left');
+                toggleIcon.classList.toggle('bi-chevron-right');
             });
-            
-            // Aquí iría el resto de tu JavaScript para cargar datos, etc.
-            console.log('Dashboard cargado correctamente');
+
+            // Manejar clic en módulos
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-module]')) {
+                    e.preventDefault();
+                    const link = e.target.closest('[data-module]');
+                    const modulePath = link.getAttribute('data-module');
+                    const moduleTitleText = link.getAttribute('data-title') || link.textContent.trim();
+                    
+                    loadModule(modulePath, moduleTitleText);
+                    
+                    // Marcar como activo
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    link.classList.add('active');
+                    
+                    // Cerrar sidebar en móviles
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.add('sidebar-collapsed');
+                        toggleIcon.classList.remove('bi-chevron-left');
+                        toggleIcon.classList.add('bi-chevron-right');
+                    }
+                }
+            });
+
+            // Botón de cerrar sesión
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('user');
+                localStorage.removeItem('menu');
+                localStorage.removeItem('token');
+                window.location.href = './login.html';
+            });
+
+            // Manejar popstate (navegación atrás/adelante)
+            window.addEventListener('popstate', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const moduleParam = urlParams.get('module');
+                
+                if (!moduleParam) {
+                    resetDashboard();
+                } else {
+                    const menuLink = document.querySelector(`[data-module="${moduleParam}"]`);
+                    if (menuLink) {
+                        const moduleTitleText = menuLink.getAttribute('data-title') || menuLink.textContent.trim();
+                        loadModule(moduleParam, moduleTitleText);
+                        menuLink.classList.add('active');
+                    }
+                }
+            });
         });
     </script>
 </body>
