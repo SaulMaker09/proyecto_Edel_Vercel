@@ -1,104 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Módulos</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
-
-        #menu {
-            background-color: #333;
+        a {
+            display: none; /* Oculta los módulos por defecto */
+            margin: 10px;
             padding: 10px;
-            text-align: center;
-        }
-
-        #menu a {
+            background-color: #4CAF50;
             color: white;
-            margin: 0 15px;
             text-decoration: none;
-            padding: 8px 12px;
             border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        #menu a:hover {
-            background-color: #555;
-        }
-
-        #contenido {
-            padding: 20px;
         }
     </style>
 </head>
+
 <body onload="checkPermissions()">
+
     <!-- Menú de Módulos -->
-    <div id="menu">
-        <div id="modulos-container">
-            <!-- Los módulos se agregarán dinámicamente aquí -->
-        </div>
+    <div id="menu-modulos">
+        <a href="#" id="modulo-dashboard" onclick="openModule(1)">Dashboard</a>
+        <a href="#" id="modulo-usuarios" onclick="openModule(2)">Usuarios</a>
+        <a href="#" id="modulo-productos" onclick="openModule(3)">Productos</a>
+        <a href="#" id="modulo-ventas" onclick="openModule(4)">Ventas</a>
+        <a href="#" id="modulo-inventario" onclick="openModule(5)">Inventario</a>
+        <a href="#" id="modulo-reportes" onclick="openModule(6)">Reportes</a>
+        <a href="#" id="modulo-configuracion" onclick="openModule(7)">Configuración</a>
     </div>
 
-    <!-- Contenido del Módulo -->
-    <div id="contenido">
-        <h2>Bienvenido al Sistema</h2>
-        <p>Selecciona un módulo del menú para comenzar.</p>
-    </div>
+    <!-- Contenido del módulo -->
+    <div id="contenido"></div>
 
-    <!-- Script para gestionar módulos dinámicos -->
     <script>
-        // Simular el perfil del usuario logueado
-        const idPerfil = 1; // Cambia esto según el perfil real (Ejemplo: 1 = Admin, 2 = Usuario normal)
-        const esAdmin = idPerfil === 1; // Si es Admin (idPerfil = 1), muestra todo
+        // Variable global para el idPerfil del usuario (por ejemplo, 2 para supervisor)
+        let idPerfil = 1; // Cambia según el perfil del usuario logueado
 
         // Función para verificar permisos y mostrar módulos
         function checkPermissions() {
             fetch(`https://ghostwhite-wasp-985227.hostingersite.com/api_PermisosPerfil.php?idPerfil=${idPerfil}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al cargar permisos');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(permisos => {
                     if (permisos.length > 0) {
-                        const container = document.getElementById('modulos-container');
-                        container.innerHTML = ''; // Limpiar antes de agregar módulos dinámicos
-
                         permisos.forEach(modulo => {
-                            // Mostrar módulos solo si es Admin o tiene permiso para consultar
-                            if (esAdmin || modulo.bitConsultar == 1) {
-                                const enlaceModulo = document.createElement('a');
-                                enlaceModulo.href = '#';
-                                enlaceModulo.id = `modulo-${modulo.idModulo}`;
-                                enlaceModulo.setAttribute('onclick', `openModule(${modulo.idModulo})`);
-                                enlaceModulo.innerText = modulo.nombreModulo;
-
-                                // Agregar el enlace al contenedor
-                                container.appendChild(enlaceModulo);
+                            // Verificar si al menos uno de los bits está activo
+                            if (modulo.bitConsultar === "1" || modulo.bitAgregar === "1" || modulo.bitEditar === "1" || modulo.bitEliminar === "1") {
+                                let moduloElement = document.querySelector(`[onclick="openModule(${modulo.idModulo})"]`);
+                                if (moduloElement) {
+                                    moduloElement.style.display = 'inline-block'; // Mostrar módulo si tiene permisos
+                                    moduloElement.innerText = modulo.nombreModulo; // Asignar nombre correcto
+                                }
                             }
                         });
                     } else {
-                        console.warn('No se encontraron módulos para este perfil.');
+                        console.error('No hay permisos asignados para este perfil.');
                     }
                 })
                 .catch(error => console.error('Error al verificar permisos:', error));
         }
 
-        // Función para abrir el módulo (puedes personalizarla)
+        // Función para abrir módulos (simulación)
         function openModule(idModulo) {
-            console.log(`Abriendo módulo con ID: ${idModulo}`);
-
-            // Aquí puedes cargar contenido dinámico para cada módulo
-            const contenido = document.getElementById('contenido');
-            contenido.innerHTML = `<h2>Módulo seleccionado</h2>
-                <p>Has abierto el módulo con ID: <strong>${idModulo}</strong></p>`;
+            document.getElementById('contenido').innerHTML = `Has abierto el módulo con id: ${idModulo}`;
         }
     </script>
+
 </body>
+
 </html>
