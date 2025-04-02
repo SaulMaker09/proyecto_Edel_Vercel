@@ -344,243 +344,148 @@
     <!-- Script para el dashboard -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Elementos del DOM (se mantienen igual)
-const sidebar = document.getElementById('sidebar');
-const toggleSidebar = document.getElementById('toggleSidebar');
-const toggleIcon = document.getElementById('toggleIcon');
-const menuContainer = document.getElementById('menuContainer');
-const userName = document.getElementById('userName');
-const userRole = document.getElementById('userRole');
-const userAvatar = document.getElementById('userAvatar');
-const logoutBtn = document.getElementById('logoutBtn');
-const moduleTitle = document.getElementById('moduleTitle');
-const moduleContent = document.getElementById('moduleContent');
-const breadcrumb = document.getElementById('breadcrumb');
+            // Elementos del DOM
+            const sidebar = document.getElementById('sidebar');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const menuContainer = document.getElementById('menuContainer');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            const userAvatar = document.getElementById('userAvatar');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const moduleTitle = document.getElementById('moduleTitle');
+            const moduleContent = document.getElementById('moduleContent');
+            const breadcrumb = document.getElementById('breadcrumb');
 
-// Verificar autenticación
-checkAuth();
+            // Verificar autenticación
+            checkAuth();
 
-// Función para verificar autenticación (se mantiene igual)
-function checkAuth() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const menuData = JSON.parse(localStorage.getItem('menu'));
-    
-    if (!user || !menuData) {
-        window.location.href = './login.html';
-        return;
-    }
-    
-    // Mostrar información del usuario
-    displayUserInfo(user);
-    
-    // Generar el menú según permisos
-    generateMenu(menuData.data, user.idPerfil); // Asegúrate de acceder a menuData.data
-    
-    // Cargar módulo inicial si hay uno en la URL
-    loadInitialModule();
-}
-
-// Mostrar información del usuario (se mantiene igual)
-function displayUserInfo(user) {
-    userName.textContent = user.nombreCompleto;
-    userRole.textContent = user.nombrePerfil;
-    
-    // Generar avatar si no hay imagen
-    if (!user.avatar) {
-        const initials = user.nombreCompleto.split(' ').map(n => n[0]).join('');
-        userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&background=random`;
-    }
-}
-
-// Función principal para generar el menú - MODIFICADA
-function generateMenu(menuItems, profileId) {
-    menuContainer.innerHTML = '';
-    
-    // Primero construimos la estructura jerárquica
-    const menuJerarquico = construirMenuJerarquico(menuItems);
-    
-    // Luego generamos el HTML para cada item del menú
-    menuJerarquico.forEach(item => {
-        menuContainer.appendChild(createMenuItem(item));
-    });
-    
-    // Agregar event listeners después de crear el menú
-    setupMenuEventListeners();
-}
-
-// Función para construir la jerarquía del menú - NUEVA
-function construirMenuJerarquico(menuItems) {
-    // Crear un mapa para acceso rápido por idModulo
-    const mapaModulos = new Map();
-    
-    // Primero creamos todos los items y los mapeamos
-    menuItems.forEach(item => {
-        mapaModulos.set(item.idModulo, {
-            ...item,
-            hijos: []
-        });
-    });
-    
-    // Construimos la jerarquía
-    const menuJerarquico = [];
-    
-    menuItems.forEach(item => {
-        if (item.idModuloPadre === null) {
-            // Es un módulo raíz (nivel 1)
-            menuJerarquico.push(mapaModulos.get(item.idModulo));
-        } else {
-            // Es un módulo hijo, lo agregamos a su padre
-            const padre = mapaModulos.get(item.idModuloPadre);
-            if (padre) {
-                padre.hijos.push(mapaModulos.get(item.idModulo));
+            // Función para verificar autenticación
+            function checkAuth() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const menuData = JSON.parse(localStorage.getItem('menu'));
+                
+                if (!user || !menuData) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                // Mostrar información del usuario
+                displayUserInfo(user);
+                
+                // Generar el menú según permisos
+                generateMenu(menuData, user.idPerfil);
+                
+                // Cargar módulo inicial si hay uno en la URL
+                loadInitialModule();
             }
-        }
-    });
-    
-    // Ordenar los módulos por el campo 'orden'
-    const ordenarMenu = (menu) => {
-        menu.sort((a, b) => a.orden - b.orden);
-        menu.forEach(item => {
-            if (item.hijos.length > 0) {
-                ordenarMenu(item.hijos);
+
+            // Mostrar información del usuario
+            function displayUserInfo(user) {
+                userName.textContent = user.nombreCompleto;
+                userRole.textContent = user.nombrePerfil;
+                
+                // Generar avatar si no hay imagen
+                if (!user.avatar) {
+                    const initials = user.nombreCompleto.split(' ').map(n => n[0]).join('');
+                    userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&background=random`;
+                }
             }
-        });
-    };
-    
-    ordenarMenu(menuJerarquico);
-    
-    return menuJerarquico;
-}
 
-// Función para crear elementos de menú - MODIFICADA
-function createMenuItem(item, level = 0) {
-    const menuItem = document.createElement('li');
-    menuItem.className = `nav-item ${level > 0 ? 'submenu-item' : ''}`;
-    
-    // Verificar si tiene submenús
-    const hasSubmenus = item.hijos && item.hijos.length > 0;
-    
-    // Crear el enlace principal
-    let linkHTML = `
-        <a href="${item.ruta ? '#' + item.ruta : '#'}" 
-           class="nav-link ${hasSubmenus ? 'dropdown-toggle' : ''}" 
-           ${hasSubmenus ? `data-bs-toggle="collapse" data-bs-target="#submenu-${item.idModulo}"` : ''}
-           data-module="${item.ruta || ''}" 
-           data-title="${item.nombreModulo}">
-            <i class="bi ${item.icono || (level === 0 ? 'bi-folder' : 'bi-file-earmark')}"></i>
-            <span class="sidebar-text">${item.nombreModulo}</span>
-            ${hasSubmenus ? '<i class="bi bi-chevron-down dropdown-icon"></i>' : ''}
-        </a>
-    `;
-    
-    // Si tiene submenús, procesarlos recursivamente
-    if (hasSubmenus) {
-        let submenuHTML = `<ul class="submenu collapse ${level > 0 ? 'submenu-nested' : ''}" id="submenu-${item.idModulo}">`;
-        
-        item.hijos.forEach(subItem => {
-            // Llamada recursiva para cada subitem
-            const subItemElement = createMenuItem(subItem, level + 1);
-            submenuHTML += subItemElement.outerHTML;
-        });
-        
-        submenuHTML += '</ul>';
-        menuItem.innerHTML = linkHTML + submenuHTML;
-    } else {
-        menuItem.innerHTML = linkHTML;
-    }
-    
-    return menuItem;
-}
-
-// Función para configurar event listeners del menú - NUEVA
-function setupMenuEventListeners() {
-    document.querySelectorAll('.nav-link:not(.dropdown-toggle)').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const modulePath = this.getAttribute('data-module');
-            const moduleTitleText = this.getAttribute('data-title');
-            
-            if (modulePath) {
-                loadModule(modulePath, moduleTitleText);
+            // Generar menú dinámico
+            function generateMenu(menu, profileId) {
+                menuContainer.innerHTML = '';
+                
+               
+                
+                // Resto del menú dinámico
+                menu.forEach(item => {
+                    createMenuItem(item);
+                });
             }
-        });
-    });
-}
 
-// Cargar módulo inicial (se mantiene igual)
-function loadInitialModule() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const moduleParam = urlParams.get('module');
-    
-    if (moduleParam) {
-        // Buscar el módulo en el menú
-        const menuLink = document.querySelector(`[data-module="${moduleParam}"]`);
-        if (menuLink) {
-            menuLink.click();
-        }
-    }
-}
+            // Añadir menú de administración
+           
 
-// Función para cargar módulos (se mantiene igual)
-function loadModule(modulePath, moduleTitleText) {
-    fetch(modulePath)
-        .then(response => {
-            if (!response.ok) throw new Error('Módulo no encontrado');
-            return response.text();
-        })
-        .then(html => {
-            moduleContent.innerHTML = html;
-            moduleTitle.textContent = moduleTitleText;
-            updateBreadcrumb(moduleTitleText);
-            
-            // Actualizar URL sin recargar la página
-            history.pushState(null, '', `?module=${modulePath}`);
-            
-            // Inicializar tooltips y otros plugins de Bootstrap
-            initBootstrapPlugins();
-            
-            // Ejecutar scripts del módulo cargado
-            executeModuleScripts();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showError(error.message);
-        });
-}
+            // Crear elemento de menú
+            function createMenuItem(item, level = 0) {
+                const menuItem = document.createElement('li');
+                menuItem.className = `nav-item ${level > 0 ? 'submenu-item' : ''}`;
+                
+                // Verificar si tiene submenús
+                const hasSubmenus = item.submodulos && item.submodulos.length > 0;
+                
+                // Crear el enlace principal
+                let linkHTML = `
+                    <a href="${item.ruta ? '#' + item.ruta : '#'}" 
+                       class="nav-link ${hasSubmenus ? 'dropdown-toggle' : ''}" 
+                       ${hasSubmenus ? `data-bs-toggle="collapse" data-bs-target="#submenu-${item.idModulo}"` : ''}
+                       data-module="${item.ruta || ''}" 
+                       data-title="${item.nombreModulo}">
+                        <i class="bi ${item.icono || (level === 0 ? 'bi-folder' : 'bi-file-earmark')}"></i>
+                        <span class="sidebar-text">${item.nombreModulo}</span>
+                        ${hasSubmenus ? '<i class="bi bi-chevron-down dropdown-icon"></i>' : ''}
+                    </a>
+                `;
+                
+                // Si tiene submenús, procesarlos recursivamente
+                if (hasSubmenus) {
+                    let submenuHTML = `<ul class="submenu collapse ${level > 0 ? 'submenu-nested' : ''}" id="submenu-${item.idModulo}">`;
+                    
+                    item.submodulos.forEach(subItem => {
+                        // Llamada recursiva para cada subitem
+                        const subItemElement = createMenuItem(subItem, level + 1);
+                        submenuHTML += subItemElement.outerHTML;
+                    });
+                    
+                    submenuHTML += '</ul>';
+                    menuItem.innerHTML = linkHTML + submenuHTML;
+                } else {
+                    menuItem.innerHTML = linkHTML;
+                }
+                
+                return menuItem;
+            }
+            // Cargar módulo inicial
+            function loadInitialModule() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const moduleParam = urlParams.get('module');
+                
+                if (moduleParam) {
+                    // Buscar el módulo en el menú
+                    const menuLink = document.querySelector(`[data-module="${moduleParam}"]`);
+                    if (menuLink) {
+                        menuLink.click();
+                    }
+                }
+            }
 
-// Función para actualizar breadcrumb (deberías implementarla)
-function updateBreadcrumb(moduleTitle) {
-    breadcrumb.innerHTML = `
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-                <li class="breadcrumb-item active" aria-current="page">${moduleTitle}</li>
-            </ol>
-        </nav>
-    `;
-}
-
-// Función para inicializar plugins de Bootstrap (deberías implementarla)
-function initBootstrapPlugins() {
-    // Inicializar tooltips, popovers, etc.
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-// Función para ejecutar scripts del módulo (deberías implementarla)
-function executeModuleScripts() {
-    // Ejecutar scripts específicos del módulo cargado
-    const scripts = moduleContent.getElementsByTagName('script');
-    for (let script of scripts) {
-        try {
-            eval(script.text);
-        } catch (error) {
-            console.error('Error ejecutando script:', error);
-        }
-    }
-}
+            // Función para cargar módulos
+            function loadModule(modulePath, moduleTitleText) {
+                fetch(modulePath)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Módulo no encontrado');
+                        return response.text();
+                    })
+                    .then(html => {
+                        moduleContent.innerHTML = html;
+                        moduleTitle.textContent = moduleTitleText;
+                        updateBreadcrumb(moduleTitleText);
+                        
+                        // Actualizar URL sin recargar la página
+                        history.pushState(null, '', `?module=${modulePath}`);
+                        
+                        // Inicializar tooltips y otros plugins de Bootstrap
+                        initBootstrapPlugins();
+                        
+                        // Ejecutar scripts del módulo cargado
+                        executeModuleScripts();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showError(error.message);
+                    });
+            }
 
             // Actualizar breadcrumb
             function updateBreadcrumb(title) {
