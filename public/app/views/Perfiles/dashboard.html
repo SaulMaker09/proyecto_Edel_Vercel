@@ -396,10 +396,7 @@
             function generateMenu(menu, profileId) {
                 menuContainer.innerHTML = '';
                 
-                // Menú de Administración (solo para admin)
-                if (profileId === 1) {
-                    addAdminMenu();
-                }
+               
                 
                 // Resto del menú dinámico
                 menu.forEach(item => {
@@ -408,45 +405,7 @@
             }
 
             // Añadir menú de administración
-            function addAdminMenu() {
-                const adminItem = document.createElement('li');
-                adminItem.className = 'nav-item';
-                adminItem.innerHTML = `
-                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                       data-bs-target="#submenu-admin" aria-expanded="false" aria-controls="submenu-admin">
-                        <i class="bi bi-gear"></i>
-                        <span class="sidebar-text">Administración</span>
-                        <i class="bi bi-chevron-down dropdown-icon"></i>
-                    </a>
-                    <ul class="submenu collapse" id="submenu-admin">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-module="usuarios.html" data-title="Gestión de Usuarios">
-                                <i class="bi bi-people"></i>
-                                <span class="sidebar-text">Usuarios</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-module="perfiles.html" data-title="Gestión de Perfiles">
-                                <i class="bi bi-person-lock"></i>
-                                <span class="sidebar-text">Perfiles</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-module="modulos.html" data-title="Gestión de Módulos">
-                                <i class="bi bi-menu-button"></i>
-                                <span class="sidebar-text">Módulos</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-module="permisos.html" data-title="Gestión de Permisos">
-                                <i class="bi bi-shield-lock"></i>
-                                <span class="sidebar-text">Permisos</span>
-                            </a>
-                        </li>
-                    </ul>
-                `;
-                menuContainer.appendChild(adminItem);
-            }
+           
 
             // Crear elemento de menú
             function createMenuItem(item) {
