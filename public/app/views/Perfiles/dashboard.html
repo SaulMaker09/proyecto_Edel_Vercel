@@ -408,41 +408,46 @@
            
 
             // Crear elemento de menú
-            function createMenuItem(item) {
+            function createMenuItem(item, level = 0) {
                 const menuItem = document.createElement('li');
-                menuItem.className = 'nav-item';
+                // Añadimos clase según el nivel de anidamiento
+                menuItem.className = `nav-item ${level > 0 ? 'submenu-item' : ''} level-${level}`;
                 
-                if (item.submodulos && item.submodulos.length > 0) {
-                    menuItem.innerHTML = `
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                           data-bs-target="#submenu-${item.idModulo}" aria-expanded="false" aria-controls="submenu-${item.idModulo}">
-                            <i class="bi ${item.icono || 'bi-folder'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                            <i class="bi bi-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="submenu collapse" id="submenu-${item.idModulo}">
-                            ${item.submodulos.map(sub => `
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link" data-module="${sub.ruta}" data-title="${sub.nombreModulo}">
-                                        <i class="bi ${sub.icono || 'bi-file-earmark'}"></i>
-                                        <span class="sidebar-text">${sub.nombreModulo}</span>
-                                    </a>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    `;
+                // Verificamos si tiene submenús (ahora usando item.hijos en lugar de item.submodulos)
+                const hasSubmenus = item.hijos && item.hijos.length > 0;
+                
+                // Creamos el enlace principal
+                let linkHTML = `
+                    <a href="${item.ruta ? '#' + item.ruta : '#'}" 
+                       class="nav-link ${hasSubmenus ? 'dropdown-toggle' : ''}" 
+                       ${hasSubmenus ? `data-bs-toggle="collapse" data-bs-target="#submenu-${item.idModulo}"` : ''}
+                       data-module="${item.ruta || ''}" 
+                       data-title="${item.nombreModulo}">
+                        <i class="bi ${item.icono || (level === 0 ? 'bi-folder' : 'bi-file-earmark')}"></i>
+                        <span class="sidebar-text">${item.nombreModulo}</span>
+                        ${hasSubmenus ? '<i class="bi bi-chevron-down dropdown-icon"></i>' : ''}
+                    </a>
+                `;
+                
+                // Si tiene submenús, procesarlos recursivamente
+                if (hasSubmenus) {
+                    let submenuHTML = `<ul class="submenu collapse ${level > 0 ? 'submenu-nested' : ''}" id="submenu-${item.idModulo}">`;
+                    
+                    // Ordenamos los hijos por el campo 'orden' antes de procesarlos
+                    item.hijos.sort((a, b) => a.orden - b.orden).forEach(subItem => {
+                        // Llamada recursiva para cada subitem (aumentamos el nivel)
+                        const subItemElement = createMenuItem(subItem, level + 1);
+                        submenuHTML += subItemElement.outerHTML;
+                    });
+                    
+                    submenuHTML += '</ul>';
+                    menuItem.innerHTML = linkHTML + submenuHTML;
                 } else {
-                    menuItem.innerHTML = `
-                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
-                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                        </a>
-                    `;
+                    menuItem.innerHTML = linkHTML;
                 }
                 
-                menuContainer.appendChild(menuItem);
+                return menuItem;
             }
-
             // Cargar módulo inicial
             function loadInitialModule() {
                 const urlParams = new URLSearchParams(window.location.search);
