@@ -388,73 +388,41 @@
         
         // Función para cargar módulos desde la API
         // Función para cargar módulos desde la API - VERSIÓN CORREGIDA
-function cargarModulos(filtros = {}) {
-    let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
-    
-    // Agregar filtros a la URL si existen
-    const params = new URLSearchParams(filtros).toString();
-    if (params) url += `?${params}`;
-    
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error('Error al cargar módulos');
-            return response.json();
-        })
-        .then(data => {
-            // Verificar si la respuesta tiene la propiedad 'data'
-            const modulosData = data.data || data;
+        function cargarModulos(filtros = {}) {
+            let url = 'https://goldenrod-grouse-151833.hostingersite.com/modulos.php';
             
-            if (!Array.isArray(modulosData)) {
-                console.error('Los datos recibidos no son un array:', modulosData);
-                throw new Error('Formato de datos inválido');
-            }
-            
-            // Procesar los módulos para asegurar que todos los campos existan
-            modulos = modulosData.map(modulo => ({
-                idModulo: modulo.idModulo || 0,
-                nombreModulo: modulo.nombreModulo || 'Sin nombre',
-                descripcion: modulo.descripcion || '',
-                nivelMenu: modulo.nivelMenu || 1,
-                idModuloPadre: modulo.idModuloPadre || null,
-                orden: modulo.orden || 0,
-                icono: modulo.icono || '',
-                ruta: modulo.ruta || ''
-            }));
-            
-            renderizarTabla(modulos);
-            actualizarInfoTabla(modulos);
-        })
-        .catch(error => {
-            console.error('Error al cargar módulos:', error);
-            mostrarAlerta('danger', 'Error al cargar los módulos: ' + error.message);
-            
-            // Mostrar datos de ejemplo si hay error (solo para desarrollo)
-            if (process.env.NODE_ENV === 'development') {
-                modulos = [
-                    {
-                        idModulo: 1,
-                        nombreModulo: 'Administración',
-                        descripcion: 'Módulos de administración',
-                        nivelMenu: 1,
-                        idModuloPadre: null,
-                        orden: 1,
-                        icono: 'bi-gear',
-                        ruta: ''
-                    },
-                    // ... más datos de ejemplo
-                ];
-                renderizarTabla(modulos);
-                actualizarInfoTabla(modulos);
-            }
-        });
-}
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar módulos');
+                    return response.json();
+                })
+                .then(response => {
+                    // Verificar si la respuesta es exitosa y tiene datos
+                    if (!response.success || !Array.isArray(response.data)) {
+                        throw new Error('Formato de respuesta inválido');
+                    }
+                    
+                    // Asignar los módulos desde response.data
+                    modulos = response.data;
+                    
+                    // Renderizar la tabla con los módulos
+                    renderizarTabla(modulos);
+                    
+                    // Actualizar la información de paginación
+                    actualizarInfoTabla(modulos);
+                })
+                .catch(error => {
+                    console.error('Error al cargar módulos:', error);
+                    mostrarAlerta('danger', 'Error al cargar los módulos: ' + error.message);
+                });
+        }
 
 // Función para renderizar la tabla - VERSIÓN MEJORADA
 function renderizarTabla(data) {
     const tabla = document.querySelector('#tablaModulos tbody');
     tabla.innerHTML = '';
     
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         tabla.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-4">
@@ -467,20 +435,20 @@ function renderizarTabla(data) {
     }
     
     data.forEach(modulo => {
-        // Buscar el módulo padre solo si existe idModuloPadre
-        const moduloPadre = modulo.idModuloPadre 
-            ? modulos.find(m => m.idModulo === modulo.idModuloPadre) 
-            : {};
+        // Buscar el nombre del módulo padre si existe
+        const nombreModuloPadre = modulo.idModuloPadre 
+            ? (data.find(m => m.idModulo === modulo.idModuloPadre)?.nombreModulo || '') 
+            : '';
         
         const nivelBadgeClass = `badge-${modulo.nivelMenu === 1 ? 'nivel1' : modulo.nivelMenu === 2 ? 'nivel2' : 'nivel3'}`;
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${modulo.idModulo || '-'}</td>
-            <td>${modulo.nombreModulo || 'Sin nombre'}</td>
-            <td><span class="badge ${nivelBadgeClass}">Nivel ${modulo.nivelMenu || 1}</span></td>
-            <td>${moduloPadre.nombreModulo || '-'}</td>
-            <td>${modulo.orden || 0}</td>
+            <td>${modulo.idModulo}</td>
+            <td>${modulo.nombreModulo}</td>
+            <td><span class="badge ${nivelBadgeClass}">Nivel ${modulo.nivelMenu}</span></td>
+            <td>${nombreModuloPadre || '-'}</td>
+            <td>${modulo.orden}</td>
             <td>${modulo.ruta || '-'}</td>
             <td class="text-center">
                 <button class="btn btn-sm btn-warning btn-action btn-editar" data-id="${modulo.idModulo}" title="Editar">
@@ -551,13 +519,14 @@ function renderizarTabla(data) {
         
         // Función para cargar módulos para el select de módulos padre
         function cargarModulosPadre(nivelDeseado = 1) {
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/modulos.php')
                 .then(response => response.json())
-                .then(data => {
-                    // Asegurarnos de usar data.data si existe
-                    const modulosData = data.data || data;
-                    modulosPadre = Array.isArray(modulosData) ? modulosData : [];
+                .then(response => {
+                    if (!response.success || !Array.isArray(response.data)) {
+                        throw new Error('Formato de respuesta inválido');
+                    }
                     
+                    modulosPadre = response.data;
                     const select = document.getElementById('idModuloPadre');
                     select.innerHTML = '<option value="">Ninguno</option>';
                     
@@ -565,7 +534,7 @@ function renderizarTabla(data) {
                         .filter(mod => mod.nivelMenu && mod.nivelMenu < nivelDeseado)
                         .forEach(mod => {
                             const nivel = mod.nivelMenu > 1 ? ' - '.repeat(mod.nivelMenu - 1) : '';
-                            select.innerHTML += `<option value="${mod.idModulo}">${nivel}${mod.nombreModulo || 'Sin nombre'}</option>`;
+                            select.innerHTML += `<option value="${mod.idModulo}">${nivel}${mod.nombreModulo}</option>`;
                         });
                 })
                 .catch(error => {
@@ -576,29 +545,30 @@ function renderizarTabla(data) {
         
         // Función para editar módulo
         function editarModulo(id) {
-            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php?id=${id}`)
+            fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?id=${id}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Error al cargar módulo');
                     return response.json();
                 })
                 .then(response => {
-                    // Manejar tanto response.data como response directo
-                    const modulo = response.data || response;
+                    if (!response.success || !response.data) {
+                        throw new Error('Módulo no encontrado');
+                    }
                     
-                    if (!modulo) throw new Error('Módulo no encontrado');
+                    const modulo = response.data;
                     
                     resetForm();
                     document.getElementById('modalTituloModulo').innerHTML = '<i class="bi bi-layers me-2"></i>Editar Módulo';
-                    document.getElementById('idModulo').value = modulo.idModulo || '';
-                    document.getElementById('nombreModulo').value = modulo.nombreModulo || '';
+                    document.getElementById('idModulo').value = modulo.idModulo;
+                    document.getElementById('nombreModulo').value = modulo.nombreModulo;
                     document.getElementById('descripcionModulo').value = modulo.descripcion || '';
-                    document.getElementById('nivelMenu').value = modulo.nivelMenu || 1;
-                    document.getElementById('orden').value = modulo.orden || 0;
+                    document.getElementById('nivelMenu').value = modulo.nivelMenu;
+                    document.getElementById('orden').value = modulo.orden;
                     document.getElementById('icono').value = modulo.icono || '';
                     document.getElementById('ruta').value = modulo.ruta || '';
                     
                     // Cargar módulos padre según el nivel
-                    cargarModulosPadre(modulo.nivelMenu || 1);
+                    cargarModulosPadre(modulo.nivelMenu);
                     
                     // Establecer el módulo padre actual después de cargar las opciones
                     setTimeout(() => {
