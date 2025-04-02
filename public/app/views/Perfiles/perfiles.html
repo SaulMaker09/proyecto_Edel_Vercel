@@ -299,37 +299,35 @@
         const confirmarEliminarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar componentes
-            cargarModulos();
-            cargarPerfiles();
-            initFiltros();
-            
-            // Evento para nuevo perfil
-            document.getElementById('btnNuevoPerfil').addEventListener('click', function() {
-                resetForm();
-                document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Nuevo Perfil';
-                cargarModulosParaPermisos();
-                perfilModal.show();
-            });
-            
-            // Guardar perfil
-            document.getElementById('btnGuardarPerfil').addEventListener('click', guardarPerfil);
-            
-            // Confirmar eliminación
-            document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarPerfil);
-            
-            // Recargar tabla
-            document.getElementById('btnRecargarTabla').addEventListener('click', function() {
-                cargarPerfiles();
-                mostrarAlerta('success', 'Tabla recargada correctamente');
-            });
-            
-            // Exportar a Excel (simulado)
-            document.getElementById('btnExportarExcel').addEventListener('click', function() {
-                mostrarAlerta('info', 'Exportando datos a Excel...');
-            });
+            // Cargar módulos primero y luego perfiles
+            cargarModulos()
+                .then(() => {
+                    cargarPerfiles();
+                    initFiltros();
+                    
+                    // Configurar eventos
+                    document.getElementById('btnNuevoPerfil').addEventListener('click', function() {
+                        resetForm();
+                        document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Nuevo Perfil';
+                        cargarModulosParaPermisos(); // Ahora modulos ya está cargado
+                        perfilModal.show();
+                    });
+                    
+                    document.getElementById('btnGuardarPerfil').addEventListener('click', guardarPerfil);
+                    document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarPerfil);
+                    document.getElementById('btnRecargarTabla').addEventListener('click', function() {
+                        cargarPerfiles();
+                        mostrarAlerta('success', 'Tabla recargada correctamente');
+                    });
+                    document.getElementById('btnExportarExcel').addEventListener('click', function() {
+                        mostrarAlerta('info', 'Exportando datos a Excel...');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error inicializando:', error);
+                    mostrarAlerta('danger', 'Error inicializando la página: ' + error.message);
+                });
         });
-        
         // Función para cargar perfiles desde la API
         function cargarPerfiles(filtros = {}) {
             let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php';
@@ -363,24 +361,27 @@
         }
         
         // Función para cargar módulos desde la API
-        function cargarModulos() {
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar módulos');
-                    return response.json();
-                })
-                .then(data => {
-                    if (!Array.isArray(data)) {
-                        console.error('Los datos recibidos no son un array:', data);
-                        throw new Error('Formato de datos inválido');
-                    }
-                    modulos = data;
-                })
-                .catch(error => {
-                    console.error('Error al cargar módulos:', error);
-                    mostrarAlerta('danger', 'Error al cargar los módulos: ' + error.message);
-                });
-        }
+        // Modificar la función cargarModulos para asegurar que se carguen correctamente
+function cargarModulos() {
+    return fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
+        .then(response => {
+            if (!response.ok) throw new Error('Error al cargar módulos');
+            return response.json();
+        })
+        .then(data => {
+            if (!Array.isArray(data)) {
+                console.error('Los datos recibidos no son un array:', data);
+                throw new Error('Formato de datos inválido');
+            }
+            modulos = data;
+            return data; // Retornamos los módulos para poder encadenar
+        })
+        .catch(error => {
+            console.error('Error al cargar módulos:', error);
+            mostrarAlerta('danger', 'Error al cargar los módulos: ' + error.message);
+            return []; // Retornar array vacío en caso de error
+        });
+}
         
         // Función para renderizar la tabla con los datos
         function renderizarTabla(data) {
@@ -481,31 +482,43 @@
             const container = document.getElementById('permisosContainer');
             container.innerHTML = '';
             
-            // Verificar que modulos esté cargado
+            // Verificar que tenemos módulos cargados
             if (!modulos || modulos.length === 0) {
-                console.error('No hay módulos cargados');
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            No se encontraron módulos
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
+            // Crear filas para cada módulo
             modulos.forEach(modulo => {
-                // Buscar permiso correspondiente al módulo actual
-                const permiso = permisos.find(p => p.idModulo == modulo.idModulo) || {};
+                // Buscar permiso correspondiente (asegurando comparación numérica)
+                const permiso = permisos.find(p => parseInt(p.idModulo) === parseInt(modulo.idModulo)) || {};
                 
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-modulo', modulo.idModulo);
                 tr.innerHTML = `
-                    <td>${modulo.nombreModulo}</td>
+                    <td>${modulo.nombreModulo || 'Módulo sin nombre'}</td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input consultar" ${permiso.puedeConsultar ? 'checked' : ''}>
+                        <input type="checkbox" class="form-check-input consultar" 
+                            ${permiso.puedeConsultar == 1 ? 'checked' : ''}>
                     </td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input agregar" ${permiso.puedeAgregar ? 'checked' : ''}>
+                        <input type="checkbox" class="form-check-input agregar" 
+                            ${permiso.puedeAgregar == 1 ? 'checked' : ''}>
                     </td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input editar" ${permiso.puedeEditar ? 'checked' : ''}>
+                        <input type="checkbox" class="form-check-input editar" 
+                            ${permiso.puedeEditar == 1 ? 'checked' : ''}>
                     </td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input eliminar" ${permiso.puedeEliminar ? 'checked' : ''}>
+                        <input type="checkbox" class="form-check-input eliminar" 
+                            ${permiso.puedeEliminar == 1 ? 'checked' : ''}>
                     </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-secondary btn-seleccionar-todo" title="Seleccionar todo">
@@ -531,30 +544,47 @@
         }
         
         // Función para editar perfil
-        function editarPerfil(id) {
-            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php?id=${id}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar perfil');
-                    return response.json();
-                })
-                .then(data => {
-                    resetForm();
-                    document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                    document.getElementById('idPerfil').value = data.perfil.idPerfil;
-                    document.getElementById('nombrePerfil').value = data.perfil.nombrePerfil;
-                    document.getElementById('descripcionPerfil').value = data.perfil.descripcion || '';
-                    
-                    // Cargar permisos
-                    cargarModulosParaPermisos(data.permisos);
-                    
-                    perfilModal.show();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('danger', error.message);
-                });
-        }
-        
+        // Modificar la función editarPerfil para asegurar el flujo correcto
+function editarPerfil(id) {
+    // Mostrar loading state
+    const btnGuardar = document.getElementById('btnGuardarPerfil');
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
+
+    // Primero cargar módulos si no están cargados
+    const loadModulesPromise = modulos.length > 0 ? Promise.resolve() : cargarModulos();
+
+    loadModulesPromise
+        .then(() => {
+            return fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php?id=${id}`);
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al cargar perfil');
+            return response.json();
+        })
+        .then(data => {
+            resetForm();
+            document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+            document.getElementById('idPerfil').value = data.perfil.idPerfil;
+            document.getElementById('nombrePerfil').value = data.perfil.nombrePerfil;
+            document.getElementById('descripcionPerfil').value = data.perfil.descripcion || '';
+            
+            // Asegurarse que los permisos vienen en el formato correcto
+            const permisos = Array.isArray(data.permisos) ? data.permisos : [];
+            cargarModulosParaPermisos(permisos);
+            
+            perfilModal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('danger', error.message);
+        })
+        .finally(() => {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
+        });
+}
+
         // Función para guardar perfil (crear o actualizar)
         function guardarPerfil() {
             const form = document.getElementById('perfilForm');
