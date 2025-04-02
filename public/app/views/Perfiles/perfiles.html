@@ -334,13 +334,17 @@
         function cargarPerfiles(filtros = {}) {
             let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php';
             
-            // Agregar filtros a la URL si existen
-            const params = new URLSearchParams(filtros).toString();
-            if (params) url += `?${params}`;
+            // Solo agregar parámetros si hay filtros
+            if (Object.keys(filtros).length > 0) {
+                const params = new URLSearchParams();
+                if (filtros.busqueda) params.append('busqueda', filtros.busqueda);
+                
+                url += `?${params.toString()}`;
+            }
             
             fetch(url)
                 .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar perfiles');
+                    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
@@ -453,11 +457,16 @@
         // Función para inicializar los filtros
         function initFiltros() {
             document.getElementById('btnAplicarFiltros').addEventListener('click', function() {
-                const filtros = {
-                    busqueda: document.getElementById('buscarPerfil').value
-                };
+                const busqueda = document.getElementById('buscarPerfil').value.trim();
                 
-                cargarPerfiles(filtros);
+                if (busqueda) {
+                    const filtros = {
+                        busqueda: busqueda
+                    };
+                    cargarPerfiles(filtros);
+                } else {
+                    cargarPerfiles(); // Recargar sin filtros
+                }
             });
             
             // Permitir buscar al presionar Enter
@@ -467,13 +476,19 @@
                 }
             });
         }
-        
         // Función para cargar módulos para permisos
         function cargarModulosParaPermisos(permisos = []) {
             const container = document.getElementById('permisosContainer');
             container.innerHTML = '';
             
+            // Verificar que modulos esté cargado
+            if (!modulos || modulos.length === 0) {
+                console.error('No hay módulos cargados');
+                return;
+            }
+            
             modulos.forEach(modulo => {
+                // Buscar permiso correspondiente al módulo actual
                 const permiso = permisos.find(p => p.idModulo == modulo.idModulo) || {};
                 
                 const tr = document.createElement('tr');
