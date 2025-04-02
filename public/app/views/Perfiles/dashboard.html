@@ -408,101 +408,41 @@
            
 
             // Crear elemento de menú
-            function generateMenu(menuItems) {
-                menuContainer.innerHTML = '';
+            function createMenuItem(item) {
+                const menuItem = document.createElement('li');
+                menuItem.className = 'nav-item';
                 
-                // 1. Filtrar y ordenar los módulos por nivel y orden
-                const modulosNivel1 = menuItems
-                    .filter(item => item.nivelMenu === 1)
-                    .sort((a, b) => a.orden - b.orden);
+                if (item.submodulos && item.submodulos.length > 0) {
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                           data-bs-target="#submenu-${item.idModulo}" aria-expanded="false" aria-controls="submenu-${item.idModulo}">
+                            <i class="bi ${item.icono || 'bi-folder'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                            <i class="bi bi-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="submenu collapse" id="submenu-${item.idModulo}">
+                            ${item.submodulos.map(sub => `
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" data-module="${sub.ruta}" data-title="${sub.nombreModulo}">
+                                        <i class="bi ${sub.icono || 'bi-file-earmark'}"></i>
+                                        <span class="sidebar-text">${sub.nombreModulo}</span>
+                                    </a>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
+                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                        </a>
+                    `;
+                }
                 
-                // 2. Construir el menú nivel por nivel
-                modulosNivel1.forEach(modulo1 => {
-                    // Crear elemento de nivel 1
-                    const menuItem1 = document.createElement('li');
-                    menuItem1.className = 'nav-item';
-                    
-                    // Buscar hijos de nivel 2
-                    const modulosNivel2 = menuItems
-                        .filter(item => item.idModuloPadre === modulo1.idModulo && item.nivelMenu === 2)
-                        .sort((a, b) => a.orden - b.orden);
-                    
-                    if (modulosNivel2.length > 0) {
-                        // Módulo con submenús (nivel 1)
-                        menuItem1.innerHTML = `
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                               data-bs-target="#submenu-${modulo1.idModulo}" aria-expanded="false" 
-                               aria-controls="submenu-${modulo1.idModulo}">
-                                <i class="bi ${modulo1.icono || 'bi-folder'}"></i>
-                                <span class="sidebar-text">${modulo1.nombreModulo}</span>
-                                <i class="bi bi-chevron-down dropdown-icon"></i>
-                            </a>
-                            <ul class="submenu collapse" id="submenu-${modulo1.idModulo}">
-                                ${modulosNivel2.map(modulo2 => {
-                                    // Buscar hijos de nivel 3
-                                    const modulosNivel3 = menuItems
-                                        .filter(item => item.idModuloPadre === modulo2.idModulo && item.nivelMenu === 3)
-                                        .sort((a, b) => a.orden - b.orden);
-                                    
-                                    if (modulosNivel3.length > 0) {
-                                        // Submódulo con submenús (nivel 2)
-                                        return `
-                                            <li class="nav-item submenu-item">
-                                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                                                   data-bs-target="#submenu-${modulo2.idModulo}" aria-expanded="false" 
-                                                   aria-controls="submenu-${modulo2.idModulo}">
-                                                    <i class="bi ${modulo2.icono || 'bi-file-earmark'}"></i>
-                                                    <span class="sidebar-text">${modulo2.nombreModulo}</span>
-                                                    <i class="bi bi-chevron-down dropdown-icon"></i>
-                                                </a>
-                                                <ul class="submenu collapse submenu-nested" id="submenu-${modulo2.idModulo}">
-                                                    ${modulosNivel3.map(modulo3 => `
-                                                        <li class="nav-item submenu-item">
-                                                            <a href="#" class="nav-link" 
-                                                               data-module="${modulo3.ruta}" 
-                                                               data-title="${modulo3.nombreModulo}">
-                                                                <i class="bi ${modulo3.icono || 'bi-file-earmark'}"></i>
-                                                                <span class="sidebar-text">${modulo3.nombreModulo}</span>
-                                                            </a>
-                                                        </li>
-                                                    `).join('')}
-                                                </ul>
-                                            </li>
-                                        `;
-                                    } else {
-                                        // Submódulo sin submenús (nivel 2)
-                                        return `
-                                            <li class="nav-item submenu-item">
-                                                <a href="#" class="nav-link" 
-                                                   data-module="${modulo2.ruta}" 
-                                                   data-title="${modulo2.nombreModulo}">
-                                                    <i class="bi ${modulo2.icono || 'bi-file-earmark'}"></i>
-                                                    <span class="sidebar-text">${modulo2.nombreModulo}</span>
-                                                </a>
-                                            </li>
-                                        `;
-                                    }
-                                }).join('')}
-                            </ul>
-                        `;
-                    } else {
-                        // Módulo sin submenús (nivel 1)
-                        menuItem1.innerHTML = `
-                            <a href="#" class="nav-link" 
-                               data-module="${modulo1.ruta}" 
-                               data-title="${modulo1.nombreModulo}">
-                                <i class="bi ${modulo1.icono || 'bi-file-earmark'}"></i>
-                                <span class="sidebar-text">${modulo1.nombreModulo}</span>
-                            </a>
-                        `;
-                    }
-                    
-                    menuContainer.appendChild(menuItem1);
-                });
-                
-                // Inicializar los event listeners para los módulos
-                setupMenuEventListeners();
+                menuContainer.appendChild(menuItem);
             }
+
             // Cargar módulo inicial
             function loadInitialModule() {
                 const urlParams = new URLSearchParams(window.location.search);
