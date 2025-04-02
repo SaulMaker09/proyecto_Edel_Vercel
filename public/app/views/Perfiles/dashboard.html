@@ -84,6 +84,37 @@
         .sidebar-collapsed .submenu .nav-link {
             padding-left: 1rem;
         }
+
+        /* Estilos para los diferentes niveles del menú */
+.nav-item {
+    position: relative;
+}
+
+.submenu-item .nav-link {
+    padding-left: 30px;
+}
+
+.submenu-nested .submenu-item .nav-link {
+    padding-left: 45px;
+}
+
+.submenu {
+    list-style: none;
+    padding-left: 0;
+}
+
+.submenu .nav-link {
+    padding: 8px 15px;
+}
+
+/* Iconos */
+.bi-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+}
         
         .sidebar-header {
             padding: 1.5rem;
@@ -408,46 +439,102 @@
            
 
             // Crear elemento de menú
-            function createMenuItem(item, level = 0) {
-                const menuItem = document.createElement('li');
-                // Añadimos clase según el nivel de anidamiento
-                menuItem.className = `nav-item ${level > 0 ? 'submenu-item' : ''} level-${level}`;
+            function generateMenu(menuItems) {
+                menuContainer.innerHTML = '';
                 
-                // Verificamos si tiene submenús (ahora usando item.hijos en lugar de item.submodulos)
-                const hasSubmenus = item.hijos && item.hijos.length > 0;
+                // 1. Filtrar y ordenar los módulos por nivel y orden
+                const modulosNivel1 = menuItems
+                    .filter(item => item.nivelMenu === 1)
+                    .sort((a, b) => a.orden - b.orden);
                 
-                // Creamos el enlace principal
-                let linkHTML = `
-                    <a href="${item.ruta ? '#' + item.ruta : '#'}" 
-                       class="nav-link ${hasSubmenus ? 'dropdown-toggle' : ''}" 
-                       ${hasSubmenus ? `data-bs-toggle="collapse" data-bs-target="#submenu-${item.idModulo}"` : ''}
-                       data-module="${item.ruta || ''}" 
-                       data-title="${item.nombreModulo}">
-                        <i class="bi ${item.icono || (level === 0 ? 'bi-folder' : 'bi-file-earmark')}"></i>
-                        <span class="sidebar-text">${item.nombreModulo}</span>
-                        ${hasSubmenus ? '<i class="bi bi-chevron-down dropdown-icon"></i>' : ''}
-                    </a>
-                `;
-                
-                // Si tiene submenús, procesarlos recursivamente
-                if (hasSubmenus) {
-                    let submenuHTML = `<ul class="submenu collapse ${level > 0 ? 'submenu-nested' : ''}" id="submenu-${item.idModulo}">`;
+                // 2. Construir el menú nivel por nivel
+                modulosNivel1.forEach(modulo1 => {
+                    // Crear elemento de nivel 1
+                    const menuItem1 = document.createElement('li');
+                    menuItem1.className = 'nav-item';
                     
-                    // Ordenamos los hijos por el campo 'orden' antes de procesarlos
-                    item.hijos.sort((a, b) => a.orden - b.orden).forEach(subItem => {
-                        // Llamada recursiva para cada subitem (aumentamos el nivel)
-                        const subItemElement = createMenuItem(subItem, level + 1);
-                        submenuHTML += subItemElement.outerHTML;
-                    });
+                    // Buscar hijos de nivel 2
+                    const modulosNivel2 = menuItems
+                        .filter(item => item.idModuloPadre === modulo1.idModulo && item.nivelMenu === 2)
+                        .sort((a, b) => a.orden - b.orden);
                     
-                    submenuHTML += '</ul>';
-                    menuItem.innerHTML = linkHTML + submenuHTML;
-                } else {
-                    menuItem.innerHTML = linkHTML;
-                }
+                    if (modulosNivel2.length > 0) {
+                        // Módulo con submenús (nivel 1)
+                        menuItem1.innerHTML = `
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                               data-bs-target="#submenu-${modulo1.idModulo}" aria-expanded="false" 
+                               aria-controls="submenu-${modulo1.idModulo}">
+                                <i class="bi ${modulo1.icono || 'bi-folder'}"></i>
+                                <span class="sidebar-text">${modulo1.nombreModulo}</span>
+                                <i class="bi bi-chevron-down dropdown-icon"></i>
+                            </a>
+                            <ul class="submenu collapse" id="submenu-${modulo1.idModulo}">
+                                ${modulosNivel2.map(modulo2 => {
+                                    // Buscar hijos de nivel 3
+                                    const modulosNivel3 = menuItems
+                                        .filter(item => item.idModuloPadre === modulo2.idModulo && item.nivelMenu === 3)
+                                        .sort((a, b) => a.orden - b.orden);
+                                    
+                                    if (modulosNivel3.length > 0) {
+                                        // Submódulo con submenús (nivel 2)
+                                        return `
+                                            <li class="nav-item submenu-item">
+                                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
+                                                   data-bs-target="#submenu-${modulo2.idModulo}" aria-expanded="false" 
+                                                   aria-controls="submenu-${modulo2.idModulo}">
+                                                    <i class="bi ${modulo2.icono || 'bi-file-earmark'}"></i>
+                                                    <span class="sidebar-text">${modulo2.nombreModulo}</span>
+                                                    <i class="bi bi-chevron-down dropdown-icon"></i>
+                                                </a>
+                                                <ul class="submenu collapse submenu-nested" id="submenu-${modulo2.idModulo}">
+                                                    ${modulosNivel3.map(modulo3 => `
+                                                        <li class="nav-item submenu-item">
+                                                            <a href="#" class="nav-link" 
+                                                               data-module="${modulo3.ruta}" 
+                                                               data-title="${modulo3.nombreModulo}">
+                                                                <i class="bi ${modulo3.icono || 'bi-file-earmark'}"></i>
+                                                                <span class="sidebar-text">${modulo3.nombreModulo}</span>
+                                                            </a>
+                                                        </li>
+                                                    `).join('')}
+                                                </ul>
+                                            </li>
+                                        `;
+                                    } else {
+                                        // Submódulo sin submenús (nivel 2)
+                                        return `
+                                            <li class="nav-item submenu-item">
+                                                <a href="#" class="nav-link" 
+                                                   data-module="${modulo2.ruta}" 
+                                                   data-title="${modulo2.nombreModulo}">
+                                                    <i class="bi ${modulo2.icono || 'bi-file-earmark'}"></i>
+                                                    <span class="sidebar-text">${modulo2.nombreModulo}</span>
+                                                </a>
+                                            </li>
+                                        `;
+                                    }
+                                }).join('')}
+                            </ul>
+                        `;
+                    } else {
+                        // Módulo sin submenús (nivel 1)
+                        menuItem1.innerHTML = `
+                            <a href="#" class="nav-link" 
+                               data-module="${modulo1.ruta}" 
+                               data-title="${modulo1.nombreModulo}">
+                                <i class="bi ${modulo1.icono || 'bi-file-earmark'}"></i>
+                                <span class="sidebar-text">${modulo1.nombreModulo}</span>
+                            </a>
+                        `;
+                    }
+                    
+                    menuContainer.appendChild(menuItem1);
+                });
                 
-                return menuItem;
+                // Inicializar los event listeners para los módulos
+                setupMenuEventListeners();
             }
+
             // Cargar módulo inicial
             function loadInitialModule() {
                 const urlParams = new URLSearchParams(window.location.search);
