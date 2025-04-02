@@ -322,7 +322,7 @@
         });
         // Función para cargar perfiles desde la API
         function cargarPerfiles(filtros = {}) {
-            let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php';
+            let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
             
             // Solo agregar parámetros si hay filtros
             if (Object.keys(filtros).length > 0) {
@@ -355,7 +355,7 @@
         // Función para cargar módulos desde la API
         // Modificar la función cargarModulos para asegurar que se carguen correctamente
         function cargarModulos() {
-            return fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php')
+            return fetch('https://goldenrod-grouse-151833.hostingersite.com/modulos.php')
                 .then(response => {
                     if (!response.ok) throw new Error('Error al cargar módulos');
                     return response.json();
@@ -572,7 +572,7 @@
         
             loadModulesPromise
                 .then(() => {
-                    return fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php?id=${id}`);
+                    return fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`);
                 })
                 .then(response => {
                     if (!response.ok) throw new Error('Error al cargar perfil');
@@ -633,7 +633,7 @@
                 });
             });
             
-            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php';
+            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
             const method = formData.idPerfil ? 'PUT' : 'POST';
             
             fetch(url, {
@@ -672,7 +672,7 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php', {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
