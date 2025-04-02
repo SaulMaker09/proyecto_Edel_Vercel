@@ -84,52 +84,6 @@
         .sidebar-collapsed .submenu .nav-link {
             padding-left: 1rem;
         }
-
-/* Estilos para el menú desplegable */
-.nav-item {
-    position: relative;
-}
-
-.submenu {
-    list-style: none;
-    padding-left: 15px;
-    margin-top: 5px;
-}
-
-.submenu-nested {
-    padding-left: 15px;
-}
-
-.dropdown-icon {
-    transition: transform 0.3s ease;
-    margin-left: auto;
-}
-
-[aria-expanded="true"] .dropdown-icon {
-    transform: rotate(180deg);
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    color: #333;
-    text-decoration: none;
-    border-radius: 4px;
-}
-
-.nav-link:hover {
-    background-color: #f0f0f0;
-}
-
-.submenu-item .nav-link {
-    padding-left: 30px;
-}
-
-.submenu-nested .submenu-item .nav-link {
-    padding-left: 45px;
-}
         
         .sidebar-header {
             padding: 1.5rem;
@@ -549,49 +503,21 @@
                 // Inicializar los event listeners para los módulos
                 setupMenuEventListeners();
             }
-            
-            // Función para configurar los event listeners del menú
-            function setupMenuEventListeners() {
-                // 1. Event listeners para los enlaces que cargan módulos
-                document.querySelectorAll('.nav-link[data-module][data-title]').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        if (this.classList.contains('dropdown-toggle')) {
-                            return; // No hacer nada si es un dropdown
-                        }
-                        
-                        e.preventDefault();
-                        const modulePath = this.getAttribute('data-module');
-                        const moduleTitle = this.getAttribute('data-title');
-                        
-                        if (modulePath) {
-                            loadModule(modulePath, moduleTitle);
-                        }
-                    });
-                });
+            // Cargar módulo inicial
+            function loadInitialModule() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const moduleParam = urlParams.get('module');
                 
-                // 2. Inicializar los collapsibles de Bootstrap manualmente si es necesario
-                if (typeof bootstrap !== 'undefined') {
-                    document.querySelectorAll('.submenu').forEach(submenu => {
-                        new bootstrap.Collapse(submenu, {
-                            toggle: false
-                        });
-                    });
+                if (moduleParam) {
+                    // Buscar el módulo en el menú
+                    const menuLink = document.querySelector(`[data-module="${moduleParam}"]`);
+                    if (menuLink) {
+                        menuLink.click();
+                    }
                 }
-                
-                // 3. Rotar las flechas cuando se expande/colapsa un menú
-                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                    toggle.addEventListener('click', function() {
-                        const icon = this.querySelector('.dropdown-icon');
-                        if (icon) {
-                            icon.style.transform = this.getAttribute('aria-expanded') === 'true' 
-                                ? 'rotate(180deg)' 
-                                : 'rotate(0deg)';
-                        }
-                    });
-                });
             }
-            
-            // Función para cargar módulos (asegúrate de que esté definida)
+
+            // Función para cargar módulos
             function loadModule(modulePath, moduleTitleText) {
                 fetch(modulePath)
                     .then(response => {
@@ -617,6 +543,7 @@
                         showError(error.message);
                     });
             }
+
             // Actualizar breadcrumb
             function updateBreadcrumb(title) {
                 breadcrumb.innerHTML = `
