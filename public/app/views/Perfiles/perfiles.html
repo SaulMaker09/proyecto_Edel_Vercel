@@ -485,7 +485,6 @@
             const container = document.getElementById('permisosContainer');
             container.innerHTML = '';
             
-            // Verificar que tenemos módulos cargados
             if (!modulos || modulos.length === 0) {
                 container.innerHTML = `
                     <tr>
@@ -504,15 +503,12 @@
                 return a.orden - b.orden;
             });
             
-            // Crear filas para cada módulo
             modulosOrdenados.forEach(modulo => {
-                // Buscar permiso correspondiente (asegurando comparación numérica)
                 const permiso = permisos.find(p => parseInt(p.idModulo) === parseInt(modulo.idModulo)) || {};
                 
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-modulo', modulo.idModulo);
                 
-                // Añadir sangría según el nivel del módulo
                 const paddingLeft = modulo.nivelMenu > 1 ? `${(modulo.nivelMenu - 1) * 20}px` : '0';
                 
                 tr.innerHTML = `
@@ -581,49 +577,43 @@
                     return response.json();
                 })
                 .then(response => {
-                    // Verificar estructura de respuesta esperada
-                    if (!response || (!response.success && !response.data)) {
+                    // Verificar la estructura real de la respuesta según lo mostrado en consola
+                    if (!response || (!response.perfil && !response.permisos)) {
                         console.error('Respuesta inesperada:', response);
                         throw new Error('Formato de respuesta inválido del servidor');
                     }
         
-                    // Si la respuesta es exitosa pero viene con estructura {success, data}
-                    if (response.success) {
-                        if (!response.data) {
-                            throw new Error('El perfil solicitado no existe');
-                        }
-                        fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=1')
-  .then(r => r.json())
-  .then(console.log)
-  .catch(console.error);
-                        resetForm();
-                        document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                        document.getElementById('idPerfil').value = response.data.idPerfil;
-                        document.getElementById('nombrePerfil').value = response.data.nombrePerfil;
-                        document.getElementById('descripcionPerfil').value = response.data.descripcion || '';
-                        
-                        // Manejar permisos - asegurar que es un array
-                        const permisos = Array.isArray(response.data.permisos) ? response.data.permisos : [];
-                        cargarModulosParaPermisos(permisos);
-                        
-                        perfilModal.show();
-                    } 
-                    // Si la respuesta es el objeto del perfil directamente (sin estructura {success, data})
-                    else if (response.idPerfil) {
-                        resetForm();
-                        document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                        document.getElementById('idPerfil').value = response.idPerfil;
-                        document.getElementById('nombrePerfil').value = response.nombrePerfil;
-                        document.getElementById('descripcionPerfil').value = response.descripcion || '';
-                        
-                        // Manejar permisos - verificar si vienen en la respuesta
-                        const permisos = Array.isArray(response.permisos) ? response.permisos : [];
-                        cargarModulosParaPermisos(permisos);
-                        
-                        perfilModal.show();
-                    } else {
-                        throw new Error('Estructura de datos del perfil no reconocida');
+                    // Extraer datos del perfil y permisos
+                    const perfil = response.perfil || {};
+                    const permisos = Array.isArray(response.permisos) ? response.permisos : [];
+                    
+                    if (!perfil.idPerfil) {
+                        throw new Error('El perfil solicitado no existe o no tiene ID');
                     }
+                    
+                    resetForm();
+                    document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+                    document.getElementById('idPerfil').value = perfil.idPerfil;
+                    document.getElementById('nombrePerfil').value = perfil.nombrePerfil || '';
+                    document.getElementById('descripcionPerfil').value = perfil.descripcion || '';
+                    
+                    // Mapear permisos al formato esperado por cargarModulosParaPermisos
+                    const permisosFormateados = permisos.map(p => ({
+                        idModulo: p.idModulo,
+                        puedeConsultar: p.puedeConsultar === 1,
+                        puedeAgregar: p.puedeAgregar === 1,
+                        puedeEditar: p.puedeEditar === 1,
+                        puedeEliminar: p.puedeEliminar === 1
+                    }));
+                    
+                    cargarModulosParaPermisos(permisosFormateados);
+                    
+                    // Mostrar el modal después de un pequeño retraso para evitar problemas de renderizado
+                    setTimeout(() => {
+                        const modalEl = document.getElementById('perfilModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }, 50);
                 })
                 .catch(error => {
                     console.error('Error al editar perfil:', error);
