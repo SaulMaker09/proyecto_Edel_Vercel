@@ -575,29 +575,59 @@
                     return fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`);
                 })
                 .then(response => {
-                    if (!response.ok) throw new Error('Error al cargar perfil');
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
                     return response.json();
                 })
                 .then(response => {
-                    if (!response.success) {
-                        throw new Error(response.error || 'Error al obtener datos del perfil');
+                    // Verificar estructura de respuesta esperada
+                    if (!response || (!response.success && !response.data)) {
+                        console.error('Respuesta inesperada:', response);
+                        throw new Error('Formato de respuesta inválido del servidor');
                     }
         
-                    resetForm();
-                    document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                    document.getElementById('idPerfil').value = response.data.idPerfil;
-                    document.getElementById('nombrePerfil').value = response.data.nombrePerfil;
-                    document.getElementById('descripcionPerfil').value = response.data.descripcion || '';
-                    
-                    // Asegurarse que los permisos vienen en el formato correcto
-                    const permisos = Array.isArray(response.data.permisos) ? response.data.permisos : [];
-                    cargarModulosParaPermisos(permisos);
-                    
-                    perfilModal.show();
+                    // Si la respuesta es exitosa pero viene con estructura {success, data}
+                    if (response.success) {
+                        if (!response.data) {
+                            throw new Error('El perfil solicitado no existe');
+                        }
+                        fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=1')
+  .then(r => r.json())
+  .then(console.log)
+  .catch(console.error);
+                        resetForm();
+                        document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+                        document.getElementById('idPerfil').value = response.data.idPerfil;
+                        document.getElementById('nombrePerfil').value = response.data.nombrePerfil;
+                        document.getElementById('descripcionPerfil').value = response.data.descripcion || '';
+                        
+                        // Manejar permisos - asegurar que es un array
+                        const permisos = Array.isArray(response.data.permisos) ? response.data.permisos : [];
+                        cargarModulosParaPermisos(permisos);
+                        
+                        perfilModal.show();
+                    } 
+                    // Si la respuesta es el objeto del perfil directamente (sin estructura {success, data})
+                    else if (response.idPerfil) {
+                        resetForm();
+                        document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+                        document.getElementById('idPerfil').value = response.idPerfil;
+                        document.getElementById('nombrePerfil').value = response.nombrePerfil;
+                        document.getElementById('descripcionPerfil').value = response.descripcion || '';
+                        
+                        // Manejar permisos - verificar si vienen en la respuesta
+                        const permisos = Array.isArray(response.permisos) ? response.permisos : [];
+                        cargarModulosParaPermisos(permisos);
+                        
+                        perfilModal.show();
+                    } else {
+                        throw new Error('Estructura de datos del perfil no reconocida');
+                    }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('danger', error.message);
+                    console.error('Error al editar perfil:', error);
+                    mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
                 })
                 .finally(() => {
                     btnGuardar.disabled = false;
