@@ -108,6 +108,42 @@
 </head>
 <body>
     <div class="container-fluid px-4 py-3">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Mi Proyecto en Phalcon</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/index.html">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/public/vistasp/home.html">Login</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEditarBD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                              Editar BD
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownEditarBD">
+                              <li><a class="dropdown-item" href="/public/app/views/index/hola.html">Hola Mundo</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html">Usuarios</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html">Perfiles</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html">Módulos</a></li>
+                            </ul>
+                          </li>
+                          
+                        <li class="nav-item">
+                            <a class="nav-link" href="/public/app/views/prueba.html">CRUD</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/public/app/views/Perfiles/login.html">Login Modulos</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <!-- Encabezado -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -557,131 +593,108 @@
         
         // Función para editar perfil
         // Modificar la función editarPerfil para asegurar el flujo correcto
-        function editarPerfil(id) {
-            // Mostrar loading state
-            const btnGuardar = document.getElementById('btnGuardarPerfil');
-            btnGuardar.disabled = true;
-            btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
-        
-            // Primero cargar módulos si no están cargados
-            const loadModulesPromise = modulos.length > 0 ? Promise.resolve() : cargarModulos();
-        
-            loadModulesPromise
-                .then(() => {
-                    return fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`);
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error HTTP: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(response => {
-                    // Verificar la estructura real de la respuesta según lo mostrado en consola
-                    if (!response || (!response.perfil && !response.permisos)) {
-                        console.error('Respuesta inesperada:', response);
-                        throw new Error('Formato de respuesta inválido del servidor');
-                    }
-        
-                    // Extraer datos del perfil y permisos
-                    const perfil = response.perfil || {};
-                    const permisos = Array.isArray(response.permisos) ? response.permisos : [];
-                    
-                    if (!perfil.idPerfil) {
-                        throw new Error('El perfil solicitado no existe o no tiene ID');
-                    }
-                    
-                    resetForm();
-                    document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                    document.getElementById('idPerfil').value = perfil.idPerfil;
-                    document.getElementById('nombrePerfil').value = perfil.nombrePerfil || '';
-                    document.getElementById('descripcionPerfil').value = perfil.descripcion || '';
-                    
-                    // Mapear permisos al formato esperado por cargarModulosParaPermisos
-                    const permisosFormateados = permisos.map(p => ({
-                        idModulo: p.idModulo,
-                        puedeConsultar: p.puedeConsultar === 1,
-                        puedeAgregar: p.puedeAgregar === 1,
-                        puedeEditar: p.puedeEditar === 1,
-                        puedeEliminar: p.puedeEliminar === 1
-                    }));
-                    
-                    cargarModulosParaPermisos(permisosFormateados);
-                    
-                    // Mostrar el modal después de un pequeño retraso para evitar problemas de renderizado
-                    setTimeout(() => {
-                        const modalEl = document.getElementById('perfilModal');
-                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                        modal.show();
-                    }, 50);
-                })
-                .catch(error => {
-                    console.error('Error al editar perfil:', error);
-                    mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
-                })
-                .finally(() => {
-                    btnGuardar.disabled = false;
-                    btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
-                });
-        }
+        // Función editarPerfil actualizada
+function editarPerfil(id) {
+    const btnGuardar = document.getElementById('btnGuardarPerfil');
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
 
-        // Función para guardar perfil (crear o actualizar)
-        function guardarPerfil() {
-            const form = document.getElementById('perfilForm');
-            
-            if (!form.checkValidity()) {
-                form.classList.add('was-validated');
-                return;
+    fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`)
+        .then(response => {
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            return response.json();
+        })
+        .then(response => {
+            // Verificar si la respuesta tiene la estructura esperada
+            if (!response || (!response.perfil && !response.permisos)) {
+                throw new Error('Formato de respuesta inválido');
             }
+
+            resetForm();
+            document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+            document.getElementById('idPerfil').value = response.perfil.idPerfil;
+            document.getElementById('nombrePerfil').value = response.perfil.nombrePerfil || '';
+            document.getElementById('descripcionPerfil').value = response.perfil.descripcion || '';
             
-            const formData = {
-                idPerfil: document.getElementById('idPerfil').value,
-                nombrePerfil: document.getElementById('nombrePerfil').value,
-                descripcion: document.getElementById('descripcionPerfil').value,
-                permisos: []
-            };
+            // Mapear permisos
+            const permisosFormateados = response.permisos.map(p => ({
+                idModulo: p.idModulo,
+                puedeConsultar: p.puedeConsultar === 1,
+                puedeAgregar: p.puedeAgregar === 1,
+                puedeEditar: p.puedeEditar === 1,
+                puedeEliminar: p.puedeEliminar === 1
+            }));
             
-            // Recoger permisos
-            document.querySelectorAll('[data-modulo]').forEach(row => {
-                const idModulo = row.getAttribute('data-modulo');
-                formData.permisos.push({
-                    idModulo: idModulo,
-                    puedeConsultar: row.querySelector('.consultar').checked ? 1 : 0,
-                    puedeAgregar: row.querySelector('.agregar').checked ? 1 : 0,
-                    puedeEditar: row.querySelector('.editar').checked ? 1 : 0,
-                    puedeEliminar: row.querySelector('.eliminar').checked ? 1 : 0
-                });
-            });
+            cargarModulosParaPermisos(permisosFormateados);
             
-            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
-            const method = formData.idPerfil ? 'PUT' : 'POST';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    perfilModal.hide();
-                    cargarPerfiles();
-                    mostrarAlerta('success', `Perfil ${formData.idPerfil ? 'actualizado' : 'creado'} correctamente`);
-                } else {
-                    throw new Error(data.error || `Error al ${formData.idPerfil ? 'actualizar' : 'crear'} el perfil`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
-            });
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
+        })
+        .finally(() => {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
+        });
+}
+
+// Función guardarPerfil actualizada
+function guardarPerfil() {
+    const form = document.getElementById('perfilForm');
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+    }
+    
+    const formData = {
+        idPerfil: document.getElementById('idPerfil').value,
+        nombrePerfil: document.getElementById('nombrePerfil').value,
+        descripcion: document.getElementById('descripcionPerfil').value,
+        permisos: []
+    };
+    
+    document.querySelectorAll('[data-modulo]').forEach(row => {
+        formData.permisos.push({
+            idModulo: row.getAttribute('data-modulo'),
+            puedeConsultar: row.querySelector('.consultar').checked ? 1 : 0,
+            puedeAgregar: row.querySelector('.agregar').checked ? 1 : 0,
+            puedeEditar: row.querySelector('.editar').checked ? 1 : 0,
+            puedeEliminar: row.querySelector('.eliminar').checked ? 1 : 0
+        });
+    });
+    
+    const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
+    const method = formData.idPerfil ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            perfilModal.hide();
+            cargarPerfiles();
+            mostrarAlerta('success', `Perfil ${formData.idPerfil ? 'actualizado' : 'creado'} correctamente`);
+        } else {
+            throw new Error(data.error || `Error al ${formData.idPerfil ? 'actualizar' : 'crear'} el perfil`);
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarAlerta('danger', error.message);
+    });
+}
         
         // Función para eliminar perfil
         function eliminarPerfil() {
