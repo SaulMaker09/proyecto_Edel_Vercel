@@ -593,7 +593,7 @@
             btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
         
             // URL corregida
-            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php?id=${id}`)
+            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Error HTTP: ${response.status}`);
