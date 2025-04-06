@@ -360,14 +360,6 @@
         function cargarPerfiles(filtros = {}) {
             let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
             
-            // Solo agregar parámetros si hay filtros
-            if (Object.keys(filtros).length > 0) {
-                const params = new URLSearchParams();
-                if (filtros.busqueda) params.append('busqueda', filtros.busqueda);
-                
-                url += `?${params.toString()}`;
-            }
-            
             fetch(url)
                 .then(response => {
                     if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
@@ -375,9 +367,10 @@
                 })
                 .then(data => {
                     if (!Array.isArray(data)) {
-                        console.error('Los datos recibidos no son un array:', data);
+                        console.error('Respuesta inesperada:', data);
                         throw new Error('Formato de datos inválido');
                     }
+                    
                     perfiles = data;
                     renderizarTabla(data);
                     actualizarInfoTabla(data);
@@ -594,56 +587,56 @@
         // Función para editar perfil
         // Modificar la función editarPerfil para asegurar el flujo correcto
         // Función editarPerfil actualizada
-function editarPerfil(idPerfil) {
-    const btnGuardar = document.getElementById('btnGuardarPerfil');
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
-
-    fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${idPerfil}`)
-        .then(response => {
-            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-            return response.json();
-        })
-        .then(response => {
-            // Verificar si la respuesta tiene la estructura esperada
-            if (!response || (!response.perfil && !response.permisos)) {
-                throw new Error('Formato de respuesta inválido');
-            }
-
-            resetForm();
-            document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-            document.getElementById('idPerfil').value = response.perfil.idPerfil;
-            document.getElementById('nombrePerfil').value = response.perfil.nombrePerfil || '';
-            document.getElementById('descripcionPerfil').value = response.perfil.descripcion || '';
-            
-            // Mapear permisos
-            const permisosFormateados = response.permisos.map(p => ({
-                idModulo: p.idModulo,
-                puedeConsultar: p.puedeConsultar === 1,
-                puedeAgregar: p.puedeAgregar === 1,
-                puedeEditar: p.puedeEditar === 1,
-                puedeEliminar: p.puedeEliminar === 1
-            }));
-            
-            cargarModulosParaPermisos(permisosFormateados);
-            
-            // Mostrar modal
-            const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
-            modal.show();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
-        })
-        .finally(() => {
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
-        });
-}
+        function editarPerfil(id) {
+            const btnGuardar = document.getElementById('btnGuardarPerfil');
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
+        
+            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                    return response.json();
+                })
+                .then(response => {
+                    if (!response || !response.perfil || !response.permisos) {
+                        throw new Error('Estructura de respuesta inválida');
+                    }
+        
+                    resetForm();
+                    document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
+                    document.getElementById('idPerfil').value = response.perfil.idPerfil;
+                    document.getElementById('nombrePerfil').value = response.perfil.nombrePerfil;
+                    document.getElementById('descripcionPerfil').value = response.perfil.descripcion || '';
+                    
+                    // Convertir permisos a formato booleano
+                    const permisosFormateados = response.permisos.map(p => ({
+                        idModulo: p.idModulo,
+                        puedeConsultar: p.puedeConsultar === 1,
+                        puedeAgregar: p.puedeAgregar === 1,
+                        puedeEditar: p.puedeEditar === 1,
+                        puedeEliminar: p.puedeEliminar === 1
+                    }));
+                    
+                    cargarModulosParaPermisos(permisosFormateados);
+                    
+                    // Mostrar modal
+                    const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
+                })
+                .finally(() => {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
+                });
+        }
 
 // Función guardarPerfil actualizada
 function guardarPerfil() {
     const form = document.getElementById('perfilForm');
+    
     if (!form.checkValidity()) {
         form.classList.add('was-validated');
         return;
@@ -656,6 +649,7 @@ function guardarPerfil() {
         permisos: []
     };
     
+    // Recoger permisos
     document.querySelectorAll('[data-modulo]').forEach(row => {
         formData.permisos.push({
             idModulo: row.getAttribute('data-modulo'),
@@ -673,7 +667,7 @@ function guardarPerfil() {
         method: method,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('perfil'))?.idPerfil || '')
+            'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
         },
         body: JSON.stringify(formData)
     })
@@ -682,20 +676,21 @@ function guardarPerfil() {
         return response.json();
     })
     .then(data => {
-        if (data.success) {
-            perfilModal.hide();
-            cargarPerfiles();
-            mostrarAlerta('success', `Perfil ${formData.idPerfil ? 'actualizado' : 'creado'} correctamente`);
-        } else {
-            throw new Error(data.error || `Error al ${formData.idPerfil ? 'actualizar' : 'crear'} el perfil`);
+        if (!data.success) {
+            throw new Error(data.error || 'Error al guardar el perfil');
         }
+        
+        perfilModal.hide();
+        cargarPerfiles();
+        mostrarAlerta('success', `Perfil ${formData.idPerfil ? 'actualizado' : 'creado'} correctamente`);
     })
     .catch(error => {
         console.error('Error:', error);
         mostrarAlerta('danger', error.message);
     });
 }
-        
+
+
         // Función para eliminar perfil
         function eliminarPerfil() {
             const id = document.getElementById('idPerfilEliminar').value;
