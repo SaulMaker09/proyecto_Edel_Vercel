@@ -109,6 +109,42 @@
 </head>
 <body>
     <div class="container-fluid px-4 py-3">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Mi Proyecto en Phalcon</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/index.html">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/public/vistasp/home.html">Login</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEditarBD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                              Editar BD
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownEditarBD">
+                              <li><a class="dropdown-item" href="/public/app/views/index/hola.html">Hola Mundo</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html">Usuarios</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html">Perfiles</a></li>
+                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html">Módulos</a></li>
+                            </ul>
+                          </li>
+                          
+                        <li class="nav-item">
+                            <a class="nav-link" href="/public/app/views/prueba.html">CRUD</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/public/app/views/Perfiles/login.html">Login Modulos</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <!-- Encabezado -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
