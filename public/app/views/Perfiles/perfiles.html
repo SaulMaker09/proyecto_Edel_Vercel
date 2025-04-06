@@ -592,24 +592,33 @@
             btnGuardar.disabled = true;
             btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...';
         
-            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php?id=${id}`)
+            // URL corregida
+            fetch(`https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/perfiles.php?id=${id}`)
                 .then(response => {
-                    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
                     return response.json();
                 })
                 .then(response => {
-                    if (!response || !response.perfil || !response.permisos) {
-                        throw new Error('Estructura de respuesta inválida');
+                    console.log('Respuesta del servidor:', response); // Para depuración
+                    
+                    // Adaptación a la estructura real de tu API
+                    const perfil = response.perfil || {};
+                    const permisos = response.permisos || [];
+                    
+                    if (!perfil.idPerfil) {
+                        throw new Error('Perfil no encontrado en la respuesta');
                     }
-        
+                    
                     resetForm();
                     document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Editar Perfil';
-                    document.getElementById('idPerfil').value = response.perfil.idPerfil;
-                    document.getElementById('nombrePerfil').value = response.perfil.nombrePerfil;
-                    document.getElementById('descripcionPerfil').value = response.perfil.descripcion || '';
+                    document.getElementById('idPerfil').value = perfil.idPerfil;
+                    document.getElementById('nombrePerfil').value = perfil.nombrePerfil || '';
+                    document.getElementById('descripcionPerfil').value = perfil.descripcion || '';
                     
                     // Convertir permisos a formato booleano
-                    const permisosFormateados = response.permisos.map(p => ({
+                    const permisosFormateados = permisos.map(p => ({
                         idModulo: p.idModulo,
                         puedeConsultar: p.puedeConsultar === 1,
                         puedeAgregar: p.puedeAgregar === 1,
@@ -619,12 +628,15 @@
                     
                     cargarModulosParaPermisos(permisosFormateados);
                     
-                    // Mostrar modal
-                    const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
-                    modal.show();
+                    // Mostrar modal con retraso para asegurar renderizado
+                    setTimeout(() => {
+                        const modalEl = document.getElementById('perfilModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }, 100);
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error al editar perfil:', error);
                     mostrarAlerta('danger', 'Error al cargar el perfil: ' + error.message);
                 })
                 .finally(() => {
