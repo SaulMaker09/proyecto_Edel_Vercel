@@ -408,29 +408,33 @@
            
 
             // Crear elemento de menú
-            function createMenuItem(item) {
+            function createMenuItem(item, parentUl = menuContainer) {
                 const menuItem = document.createElement('li');
                 menuItem.className = 'nav-item';
-                
-                if (item.submodulos && item.submodulos.length > 0) {
+            
+                const hasChildren = item.submodulos && item.submodulos.length > 0;
+            
+                if (hasChildren) {
+                    const submenuId = `submenu-${item.idModulo}`;
+            
                     menuItem.innerHTML = `
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" 
-                           data-bs-target="#submenu-${item.idModulo}" aria-expanded="false" aria-controls="submenu-${item.idModulo}">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
+                           data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
                             <i class="bi ${item.icono || 'bi-folder'}"></i>
                             <span class="sidebar-text">${item.nombreModulo}</span>
                             <i class="bi bi-chevron-down dropdown-icon"></i>
                         </a>
-                        <ul class="submenu collapse" id="submenu-${item.idModulo}">
-                            ${item.submodulos.map(sub => `
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link" data-module="${sub.ruta}" data-title="${sub.nombreModulo}">
-                                        <i class="bi ${sub.icono || 'bi-file-earmark'}"></i>
-                                        <span class="sidebar-text">${sub.nombreModulo}</span>
-                                    </a>
-                                </li>
-                            `).join('')}
-                        </ul>
+                        <ul class="submenu collapse" id="${submenuId}"></ul>
                     `;
+            
+                    parentUl.appendChild(menuItem);
+            
+                    // Recorrer hijos recursivamente
+                    const submenuElement = menuItem.querySelector(`#${submenuId}`);
+                    item.submodulos.forEach(child => {
+                        createMenuItem(child, submenuElement);
+                    });
+            
                 } else {
                     menuItem.innerHTML = `
                         <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
@@ -438,10 +442,10 @@
                             <span class="sidebar-text">${item.nombreModulo}</span>
                         </a>
                     `;
+                    parentUl.appendChild(menuItem);
                 }
-                
-                menuContainer.appendChild(menuItem);
             }
+            
 
             // Cargar módulo inicial
             function loadInitialModule() {
