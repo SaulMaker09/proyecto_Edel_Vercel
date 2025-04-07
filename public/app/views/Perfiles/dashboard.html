@@ -1337,5 +1337,85 @@
             });
         });
     </script>
+
+<script>
+function buildModuleTree(modulos) {
+    const moduloMap = {};
+    const tree = [];
+
+    modulos.forEach(modulo => {
+        modulo.hijos = [];
+        moduloMap[modulo.idModulo] = modulo;
+    });
+
+    modulos.forEach(modulo => {
+        if (modulo.idModuloPadre) {
+            if (moduloMap[modulo.idModuloPadre]) {
+                moduloMap[modulo.idModuloPadre].hijos.push(modulo);
+            }
+        } else {
+            tree.push(modulo);
+        }
+    });
+
+    return tree;
+}
+
+function renderMenu(modulos, nivel = 1) {
+    let html = '<ul class="nav flex-column">';
+
+    modulos.forEach(modulo => {
+        if (!modulo.permiso.puedeConsultar) return;
+
+        const hasChildren = modulo.hijos && modulo.hijos.length > 0;
+        const submenuId = `submenu-${modulo.idModulo}`;
+
+        html += `
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="${hasChildren ? 'collapse' : ''}" href="#${submenuId}" role="button">
+                    <i class="bi ${modulo.icono} me-2"></i> ${modulo.nombreModulo}
+                    ${hasChildren ? '<i class="bi bi-chevron-down"></i>' : ''}
+                </a>
+                ${hasChildren ? `<div class="collapse ps-${nivel * 2}" id="${submenuId}">
+                    ${renderMenu(modulo.hijos, nivel + 1)}
+                </div>` : ''}
+            </li>
+        `;
+    });
+
+    html += '</ul>';
+    return html;
+}
+
+function mostrarBotonesSeguridad(modulos) {
+    const seguridad = modulos.find(m => m.idModulo === 2);
+    if (!seguridad) return;
+
+    if (!seguridad.permiso.puedeAgregar) {
+        document.getElementById('btnAgregar')?.style.setProperty('display', 'none', 'important');
+    }
+
+    if (!seguridad.permiso.puedeEditar) {
+        document.querySelectorAll('.btnEditar').forEach(btn => btn.style.setProperty('display', 'none', 'important'));
+    }
+
+    if (!seguridad.permiso.puedeEliminar) {
+        document.querySelectorAll('.btnEliminar').forEach(btn => btn.style.setProperty('display', 'none', 'important'));
+    }
+}
+
+fetch('https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=1')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const modulos = data.data;
+            const arbolModulos = buildModuleTree(modulos);
+            const menuHtml = renderMenu(arbolModulos);
+            document.getElementById('menu-lateral').innerHTML = menuHtml;
+            mostrarBotonesSeguridad(modulos);
+        }
+    });
+</script>
+
 </body>
 </html>
