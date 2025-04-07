@@ -639,6 +639,7 @@ function renderizarTabla(data) {
                 ruta: document.getElementById('ruta').value
             };
             
+            // URL CORREGIDA - quitamos perfiles.php de la ruta
             const url = 'https://goldenrod-grouse-151833.hostingersite.com/modulos.php';
             const method = formData.idModulo ? 'PUT' : 'POST';
             
@@ -646,12 +647,17 @@ function renderizarTabla(data) {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || ''
-            )},
+                    // Verifica si realmente necesitas el token de autorización
+                    'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+                },
                 body: JSON.stringify(formData)
             })
             .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error en la respuesta del servidor');
+                    });
+                }
                 return response.json();
             })
             .then(data => {
