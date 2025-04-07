@@ -271,11 +271,11 @@
                                 <thead>
                                     <tr>
                                         <th width="30%">Módulo</th>
-                                        <th width="15%" class="text-center">Consultar</th>
-                                        <th width="15%" class="text-center">Agregar</th>
-                                        <th width="15%" class="text-center">Editar</th>
-                                        <th width="15%" class="text-center">Eliminar</th>
-                                        <th width="10%" class="text-center">Todo</th>
+                                        <th width="15%" class="text-center text-dark">Consultar</th>
+                                        <th width="15%" class="text-center text-dark">Agregar</th>
+                                        <th width="15%" class="text-center text-dark">Editar</th>
+                                        <th width="15%" class="text-center text-dark">Eliminar</th>
+                                        <th width="10%" class="text-center text-dark">Todo</th>
                                     </tr>
                                 </thead>
                                 <tbody id="permisosContainer">
@@ -341,21 +341,37 @@
                     cargarPerfiles();
                     initFiltros();
                     
-                    // Configurar eventos
+                    // Evento para nuevo perfil
                     document.getElementById('btnNuevoPerfil').addEventListener('click', function() {
                         resetForm();
                         document.getElementById('modalTituloPerfil').innerHTML = '<i class="bi bi-person-lock me-2"></i>Nuevo Perfil';
-                        cargarModulosParaPermisos(); // Ahora modulos ya está cargado
+                        cargarModulosParaPermisos();
                         perfilModal.show();
                     });
                     
-                    // Resto de eventos...
+                    // Evento para guardar perfil
+                    document.getElementById('btnGuardarPerfil').addEventListener('click', guardarPerfil);
+                    
+                    // Evento para confirmar eliminación
+                    document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarPerfil);
+                    
+                    // Evento para recargar tabla
+                    document.getElementById('btnRecargarTabla').addEventListener('click', function() {
+                        cargarPerfiles();
+                        mostrarAlerta('success', 'Tabla recargada correctamente');
+                    });
+                    
+                    // Evento para exportar a Excel
+                    document.getElementById('btnExportarExcel').addEventListener('click', function() {
+                        mostrarAlerta('info', 'Exportando datos a Excel...');
+                    });
                 })
                 .catch(error => {
                     console.error('Error inicializando:', error);
                     mostrarAlerta('danger', 'Error inicializando la página: ' + error.message);
                 });
         });
+        
         // Función para cargar perfiles desde la API
         function cargarPerfiles(filtros = {}) {
             let url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
@@ -654,37 +670,46 @@ function guardarPerfil() {
         return;
     }
     
+    const btnGuardar = document.getElementById('btnGuardarPerfil');
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+    
     const formData = {
-        idPerfil: document.getElementById('idPerfil').value,
         nombrePerfil: document.getElementById('nombrePerfil').value,
         descripcion: document.getElementById('descripcionPerfil').value,
         permisos: []
     };
     
+    // Obtener ID si es edición
+    const idPerfil = document.getElementById('idPerfil').value;
+    if (idPerfil) {
+        formData.idPerfil = idPerfil;
+    }
+    
     // Recoger permisos
-    document.querySelectorAll('[data-modulo]').forEach(row => {
+    document.querySelectorAll('#permisosContainer tr[data-modulo]').forEach(row => {
         formData.permisos.push({
             idModulo: row.getAttribute('data-modulo'),
-            puedeConsultar: row.querySelector('.consultar').checked ? 1 : 0,
-            puedeAgregar: row.querySelector('.agregar').checked ? 1 : 0,
-            puedeEditar: row.querySelector('.editar').checked ? 1 : 0,
-            puedeEliminar: row.querySelector('.eliminar').checked ? 1 : 0
+            puedeConsultar: row.querySelector('.consultar').checked,
+            puedeAgregar: row.querySelector('.agregar').checked,
+            puedeEditar: row.querySelector('.editar').checked,
+            puedeEliminar: row.querySelector('.eliminar').checked
         });
     });
     
-    const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php';
-    const method = formData.idPerfil ? 'PUT' : 'POST';
-    
-    fetch(url, {
-        method: method,
+    fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php', {
+        method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + (JSON.parse(localStorage.getItem('user'))?.idUsuario || '')
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
     })
     .then(response => {
-        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.error || 'Error en la respuesta del servidor');
+            });
+        }
         return response.json();
     })
     .then(data => {
@@ -694,11 +719,15 @@ function guardarPerfil() {
         
         perfilModal.hide();
         cargarPerfiles();
-        mostrarAlerta('success', `Perfil ${formData.idPerfil ? 'actualizado' : 'creado'} correctamente`);
+        mostrarAlerta('success', `Perfil ${idPerfil ? 'actualizado' : 'creado'} correctamente`);
     })
     .catch(error => {
         console.error('Error:', error);
         mostrarAlerta('danger', error.message);
+    })
+    .finally(() => {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="bi bi-save me-2"></i>Guardar';
     });
 }
 
