@@ -408,80 +408,43 @@
            
 
             // Crear elemento de menú
-            // 1. Convertir respuesta plana a jerarquía
-function buildMenuTree(modulos) {
-    const lookup = {};
-    const tree = [];
-
-    // Inicializar estructura
-    modulos.forEach(modulo => {
-        modulo.submodulos = [];
-        lookup[modulo.idModulo] = modulo;
-    });
-
-    // Construir jerarquía
-    modulos.forEach(modulo => {
-        if (modulo.idModuloPadre) {
-            lookup[modulo.idModuloPadre].submodulos.push(modulo);
-        } else {
-            tree.push(modulo);
-        }
-    });
-
-    return tree;
-}
-
-// 2. Función recursiva para renderizar menú
-function createMenuItem(item, parentUl) {
-    const menuItem = document.createElement('li');
-    menuItem.className = 'nav-item';
-
-    const hasChildren = item.submodulos && item.submodulos.length > 0;
-
-    if (hasChildren) {
-        const submenuId = `submenu-${item.idModulo}`;
-
-        menuItem.innerHTML = `
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-               data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
-                <i class="bi ${item.icono || 'bi-folder'}"></i>
-                <span class="sidebar-text">${item.nombreModulo}</span>
-                <i class="bi bi-chevron-down dropdown-icon"></i>
-            </a>
-            <ul class="submenu collapse ps-3" id="${submenuId}"></ul>
-        `;
-
-        parentUl.appendChild(menuItem);
-
-        const submenuElement = menuItem.querySelector(`#${submenuId}`);
-        item.submodulos.forEach(child => {
-            createMenuItem(child, submenuElement);
-        });
-    } else {
-        menuItem.innerHTML = `
-            <a href="${item.ruta || '#'}" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
-                <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
-                <span class="sidebar-text">${item.nombreModulo}</span>
-            </a>
-        `;
-        parentUl.appendChild(menuItem);
-    }
-}
-
-// 3. Obtener del localStorage, construir árbol y renderizar
-document.addEventListener('DOMContentLoaded', () => {
-    const menuContainer = document.getElementById('menuContainer');
-    const menuData = JSON.parse(localStorage.getItem('menu'));
-
-    if (!menuData) return;
-
-    const tree = buildMenuTree(menuData);
-
-    tree.forEach(item => {
-        createMenuItem(item, menuContainer);
-    });
-});
-
+            function createMenuItem(item, parentUl = menuContainer) {
+                const menuItem = document.createElement('li');
+                menuItem.className = 'nav-item';
+            
+                const hasChildren = item.submodulos && item.submodulos.length > 0;
+            
+                if (hasChildren) {
+                    const submenuId = `submenu-${item.idModulo}`;
+            
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
+                           data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
+                            <i class="bi ${item.icono || 'bi-folder'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                            <i class="bi bi-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="submenu collapse" id="${submenuId}"></ul>
+                    `;
+            
+                    parentUl.appendChild(menuItem);
+            
+                    // Recorrer hijos recursivamente
+                    const submenuElement = menuItem.querySelector(`#${submenuId}`);
+                    item.submodulos.forEach(child => {
+                        createMenuItem(child, submenuElement);
+                    });
+            
+                } else {
+                    menuItem.innerHTML = `
+                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
+                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
+                            <span class="sidebar-text">${item.nombreModulo}</span>
+                        </a>
+                    `;
+                    parentUl.appendChild(menuItem);
+                }
+            }
             
 
             // Cargar módulo inicial

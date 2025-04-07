@@ -639,7 +639,7 @@ function renderizarTabla(data) {
                 ruta: document.getElementById('ruta').value
             };
             
-            const url = 'https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php';
+            const url = 'https://goldenrod-grouse-151833.hostingersite.com/modulos.php';
             const method = formData.idModulo ? 'PUT' : 'POST';
             
             fetch(url, {
@@ -678,7 +678,7 @@ function renderizarTabla(data) {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             
-            fetch('https://goldenrod-grouse-151833.hostingersite.com/perfiles.php/modulos.php', {
+            fetch('https://goldenrod-grouse-151833.hostingersite.com/modulos.php', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
