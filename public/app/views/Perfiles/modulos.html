@@ -670,8 +670,13 @@ function renderizarTabla(data) {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                mostrarAlerta('danger', error.message);
+                // Esto te mostrará el error real en la consola
+                console.error('Error completo:', error);
+                if (error.message.includes('<br />')) {
+                    mostrarAlerta('danger', 'Error en el servidor (ver consola para detalles)');
+                } else {
+                    mostrarAlerta('danger', error.message);
+                }
             });
         }
         
