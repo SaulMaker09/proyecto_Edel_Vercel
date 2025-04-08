@@ -1361,6 +1361,7 @@ function buildModuleTree(modulos) {
     return tree;
 }
 
+// === Parte 1: Mejorar renderMenu para mostrar hasta 3 niveles ===
 function renderMenu(modulos, nivel = 1) {
     let html = '<ul class="nav flex-column">';
 
@@ -1372,7 +1373,9 @@ function renderMenu(modulos, nivel = 1) {
 
         html += `
             <li class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="${hasChildren ? 'collapse' : ''}" href="#${submenuId}" role="button">
+                <a href="#" class="nav-link d-flex justify-content-between align-items-center"
+                   data-id="${modulo.idModulo}"
+                   ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${submenuId}"` : ''}>
                     <i class="bi ${modulo.icono} me-2"></i> ${modulo.nombreModulo}
                     ${hasChildren ? '<i class="bi bi-chevron-down"></i>' : ''}
                 </a>
@@ -1385,6 +1388,40 @@ function renderMenu(modulos, nivel = 1) {
 
     html += '</ul>';
     return html;
+}
+
+// === Parte 2: Evento click solo cuando NO tiene hijos ===
+document.addEventListener('click', function (e) {
+    const link = e.target.closest('a.nav-link');
+    if (!link) return;
+
+    const hasToggle = link.getAttribute('data-bs-toggle');
+    const idModulo = link.getAttribute('data-id');
+
+    // Si NO tiene hijos (es final), cargar la vista
+    if (!hasToggle && idModulo) {
+        e.preventDefault();
+        cargarVistaDelModulo(idModulo);
+    }
+});
+
+// === Parte 3: Cargar vista del módulo y permisos ===
+function cargarVistaDelModulo(idModulo) {
+    // Simulamos obtener la vista
+    fetch(`vistas/modulo-${idModulo}.html`)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('contenido').innerHTML = html;
+
+            // Luego pedimos permisos por separado
+            fetch(`api/permisos?idModulo=${idModulo}`)
+                .then(res => res.json())
+                .then(permiso => {
+                    if (!permiso.puedeAgregar) document.querySelector('.btn-agregar')?.classList.add('d-none');
+                    if (!permiso.puedeEditar) document.querySelectorAll('.btn-editar').forEach(b => b.classList.add('d-none'));
+                    if (!permiso.puedeEliminar) document.querySelectorAll('.btn-eliminar').forEach(b => b.classList.add('d-none'));
+                });
+        });
 }
 
 function mostrarBotonesSeguridad(modulos) {
