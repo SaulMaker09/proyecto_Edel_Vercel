@@ -30,6 +30,10 @@
     .menu-item > a:hover {
       background-color: #34495e;
     }
+    .menu-item > a > i {
+      width: 20px;
+      text-align: center;
+    }
     .submenu {
       margin-left: 15px;
       margin-top: 5px;
@@ -114,32 +118,30 @@
 
     // Verifica si el módulo tiene al menos un permiso activo
     function tienePermiso(modulo) {
-      if (modulo.permiso) {
-        // Si usa el formato de objeto permiso
-        const { puedeConsultar, puedeAgregar, puedeEditar, puedeEliminar } = modulo.permiso;
-        return puedeConsultar || puedeAgregar || puedeEditar || puedeEliminar;
-      } else {
-        // Si usa el formato directo
-        return (
-          parseInt(modulo.consultar) === 1 ||
-          parseInt(modulo.agregar) === 1 ||
-          parseInt(modulo.editar) === 1 ||
-          parseInt(modulo.eliminar) === 1
-        );
-      }
+      if (!modulo.permiso) return false;
+      
+      const { puedeConsultar, puedeAgregar, puedeEditar, puedeEliminar } = modulo.permiso;
+      return puedeConsultar || puedeAgregar || puedeEditar || puedeEliminar;
     }
 
     // Filtra recursivamente los módulos por permisos
     function filtrarModulosPorPermiso(modulos) {
       return modulos
-        .filter(modulo => tienePermiso(modulo))
+        .filter(modulo => {
+          // Solo incluir módulos con al menos un permiso
+          return tienePermiso(modulo) || 
+                 (modulo.hijos && modulo.hijos.length > 0 && 
+                  filtrarModulosPorPermiso(modulo.hijos).length > 0);
+        })
         .map(modulo => {
           return {
             ...modulo,
-            hijos: filtrarModulosPorPermiso(modulo.hijos || [])
+            // Filtrar recursivamente los hijos
+            hijos: modulo.hijos && modulo.hijos.length > 0 ? 
+                   filtrarModulosPorPermiso(modulo.hijos) : []
           };
         })
-        .sort((a, b) => (a.orden || 0) - (b.orden || 0)); // Ordenar por campo orden
+        .sort((a, b) => a.orden - b.orden); // Ordenar por campo orden
     }
 
     // Renderiza el menú recursivamente
@@ -159,6 +161,9 @@
             const submenu = item.querySelector(".submenu");
             if (submenu) submenu.classList.toggle("open");
           });
+          
+          // Agregar indicador de submenú
+          link.innerHTML += ' <i class="bi bi-chevron-down ms-auto"></i>';
         } else if (modulo.ruta && modulo.ruta !== "") {
           // Si no tiene hijos pero tiene ruta, usar la ruta
           link.href = modulo.ruta;
@@ -181,15 +186,26 @@
       });
     }
 
-    // Simulación de llamada al API
+    // Simulación de llamada al API o uso de datos proporcionados
     async function obtenerModulosDesdeAPI() {
       const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
       const idPerfil = usuario.idPerfil || 1; // Valor por defecto en caso de no tener usuario
 
       try {
-        const response = await fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${idPerfil}`);
+        // Para pruebas, puedes usar datos estáticos como los proporcionados
+        // Descomenta esta sección para usar la API real
+        const response = await fetch(`https://tuservidor/api/modulos?idPerfil=${idPerfil}`);
         const data = await response.json();
         return data.data || [];
+        
+        /* Datos estáticos para pruebas
+        return JSON.parse(`{
+          "success": true,
+          "data": [
+            // ... aquí los datos de tu ejemplo
+          ]
+        }`).data;
+        */
       } catch (error) {
         console.error("Error al obtener módulos:", error);
         return []; // Retornar array vacío en caso de error
