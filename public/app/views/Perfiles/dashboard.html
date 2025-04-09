@@ -33,9 +33,10 @@
     .submenu {
       margin-left: 15px;
       margin-top: 5px;
-    }
-    .d-none {
       display: none;
+    }
+    .submenu.open {
+      display: block;
     }
     #content {
       flex-grow: 1;
@@ -50,11 +51,9 @@
     <div class="text-center mb-4">
       <div class="rounded-circle bg-info text-white fw-bold fs-4 d-inline-block p-3">AS</div>
       <p class="mt-2 mb-0 fw-semibold">Administrador del Sistema</p>
-      
-
-  <button id="cerrarSesion">Cerrar sesión</button>
+      <button id="cerrarSesion" class="btn btn-sm btn-danger mt-2">Cerrar sesión</button>
     </div>
-    <ul id="menuContainer"></ul>
+    <div id="menuContainer"></div>
   </div>
 
   <!-- Contenido principal -->
@@ -66,86 +65,136 @@
   <!-- JS -->
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-        const menuContainer = document.getElementById("menuContainer");
-    
+      try {
         const modulos = await obtenerModulosDesdeAPI();
-    
-        // Organiza los módulos por niveles
-        const modulosPorNivel = agruparPorNivel(modulos);
-    
-        // Crea un mapa para verificar permisos
-        const mapaVisibilidad = {};
-    
-        // Determina qué módulos se deben mostrar
-        modulos.forEach(modulo => {
-            const { puedeConsultar, puedeAgregar, puedeEditar, puedeEliminar } = modulo.permiso;
-            const tienePermisos = puedeConsultar || puedeAgregar || puedeEditar || puedeEliminar;
-            mapaVisibilidad[modulo.idModulo] = tienePermisos;
-        });
-    
-        // Determina visibilidad de los padres si algún hijo es visible
-        modulos.forEach(modulo => {
-            if (modulo.idModuloPadre && mapaVisibilidad[modulo.idModulo]) {
-                let padreId = modulo.idModuloPadre;
-                while (padreId) {
-                    mapaVisibilidad[padreId] = true;
-                    const padre = modulos.find(m => m.idModulo === padreId);
-                    padreId = padre?.idModuloPadre || null;
-                }
-            }
-        });
-    
-        // Función recursiva para renderizar niveles
-        function renderNivel(nivel, idPadre = null) {
-            return modulosPorNivel[nivel]
-                .filter(mod => mod.idModuloPadre === idPadre && mapaVisibilidad[mod.idModulo])
-                .sort((a, b) => a.orden - b.orden)
-                .map(modulo => {
-                    const tieneHijos = modulos.some(m => m.idModuloPadre === modulo.idModulo && mapaVisibilidad[m.idModulo]);
-                    const subMenu = tieneHijos ? `<ul>${renderNivel(nivel + 1, modulo.idModulo).join("")}</ul>` : "";
-    
-                    const ruta = modulo.ruta || "#";
-                    return `
-                        <li>
-                            <a href="${ruta}">
-                                <i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}
-                            </a>
-                            ${subMenu}
-                        </li>
-                    `;
-                });
-        }
-    
-        // Renderizar menú principal (nivel 1)
-        const menuHTML = renderNivel(1);
-        menuContainer.innerHTML = menuHTML.join("");
-    
+        const menuContainer = document.getElementById("menuContainer");
+
+        // Construir el árbol de módulos
+        const arbolModulos = buildMenuTree(modulos);
+        
+        // Filtrar módulos por permisos
+        const modulosFiltrados = filtrarModulosPorPermiso(arbolModulos);
+        
+        // Renderizar el menú
+        renderMenu(modulosFiltrados, menuContainer);
+
         // Botón cerrar sesión
         document.getElementById("cerrarSesion").addEventListener("click", function () {
-            localStorage.removeItem("usuario"); // o tu variable de sesión
-            window.location.href = "login.html"; // ajusta la ruta según tu estructura
+          localStorage.removeItem("usuario");
+          window.location.href = "login.html";
         });
+      } catch (error) {
+        console.error("Error al cargar los módulos:", error);
+      }
     });
-    
-    // Agrupa módulos por nivel de menú
-    function agruparPorNivel(modulos) {
-        const agrupado = {};
-        modulos.forEach(m => {
-            if (!agrupado[m.nivelMenu]) agrupado[m.nivelMenu] = [];
-            agrupado[m.nivelMenu].push(m);
-        });
-        return agrupado;
+
+    // Función para construir árbol de módulos
+    function buildMenuTree(modulos) {
+      const mapa = {};
+      const raiz = [];
+
+      // Crear nodos con array de hijos
+      modulos.forEach(modulo => {
+        mapa[modulo.idModulo] = { ...modulo, hijos: [] };
+      });
+
+      // Organizar la jerarquía
+      modulos.forEach(modulo => {
+        if (modulo.idModuloPadre) {
+          if (mapa[modulo.idModuloPadre]) {
+            mapa[modulo.idModuloPadre].hijos.push(mapa[modulo.idModulo]);
+          }
+        } else {
+          raiz.push(mapa[modulo.idModulo]);
+        }
+      });
+
+      return raiz;
     }
-    
+
+    // Verifica si el módulo tiene al menos un permiso activo
+    function tienePermiso(modulo) {
+      if (modulo.permiso) {
+        // Si usa el formato de objeto permiso
+        const { puedeConsultar, puedeAgregar, puedeEditar, puedeEliminar } = modulo.permiso;
+        return puedeConsultar || puedeAgregar || puedeEditar || puedeEliminar;
+      } else {
+        // Si usa el formato directo
+        return (
+          parseInt(modulo.consultar) === 1 ||
+          parseInt(modulo.agregar) === 1 ||
+          parseInt(modulo.editar) === 1 ||
+          parseInt(modulo.eliminar) === 1
+        );
+      }
+    }
+
+    // Filtra recursivamente los módulos por permisos
+    function filtrarModulosPorPermiso(modulos) {
+      return modulos
+        .filter(modulo => tienePermiso(modulo))
+        .map(modulo => {
+          return {
+            ...modulo,
+            hijos: filtrarModulosPorPermiso(modulo.hijos || [])
+          };
+        })
+        .sort((a, b) => (a.orden || 0) - (b.orden || 0)); // Ordenar por campo orden
+    }
+
+    // Renderiza el menú recursivamente
+    function renderMenu(modulos, contenedor) {
+      modulos.forEach(modulo => {
+        const item = document.createElement("div");
+        item.classList.add("menu-item");
+
+        const link = document.createElement("a");
+        link.innerHTML = `<i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}`;
+
+        if (modulo.hijos && modulo.hijos.length > 0) {
+          // Si tiene hijos, el enlace solo toglea el submenú
+          link.href = "#";
+          link.addEventListener("click", e => {
+            e.preventDefault();
+            const submenu = item.querySelector(".submenu");
+            if (submenu) submenu.classList.toggle("open");
+          });
+        } else if (modulo.ruta && modulo.ruta !== "") {
+          // Si no tiene hijos pero tiene ruta, usar la ruta
+          link.href = modulo.ruta;
+        } else {
+          // Sin hijos y sin ruta
+          link.href = "#";
+        }
+
+        item.appendChild(link);
+
+        // Si tiene hijos, crear submenú
+        if (modulo.hijos && modulo.hijos.length > 0) {
+          const sub = document.createElement("div");
+          sub.classList.add("submenu");
+          renderMenu(modulo.hijos, sub);
+          item.appendChild(sub);
+        }
+
+        contenedor.appendChild(item);
+      });
+    }
+
     // Simulación de llamada al API
     async function obtenerModulosDesdeAPI() {
-        const usuario = JSON.parse(localStorage.getItem("usuario")); // O como tengas guardado el token/ID
-    
-        const response = await fetch(`https://tuservidor/api/modulos?idPerfil=${usuario.idPerfil}`);
+      const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+      const idPerfil = usuario.idPerfil || 1; // Valor por defecto en caso de no tener usuario
+
+      try {
+        const response = await fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos?idPerfil=${idPerfil}`);
         const data = await response.json();
         return data.data || [];
+      } catch (error) {
+        console.error("Error al obtener módulos:", error);
+        return []; // Retornar array vacío en caso de error
+      }
     }
-    
   </script>
 </body>
 </html>
