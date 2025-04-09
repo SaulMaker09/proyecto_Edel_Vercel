@@ -59,7 +59,9 @@
     <div class="text-center mb-4">
       <div class="rounded-circle bg-info text-white fw-bold fs-4 d-inline-block p-3">AS</div>
       <p class="mt-2 mb-0 fw-semibold">Administrador del Sistema</p>
-      <a href="#" class="text-white text-decoration-none small"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+      <a href="#" id="logout-btn" class="text-white text-decoration-none small">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </a>
     </div>
     <div id="menu-lateral"></div>
   </div>
@@ -72,71 +74,108 @@
 
   <!-- JS -->
   <script>
-    // ⚠️ Aquí puedes establecer el perfil dinámicamente:
-    // Lo puedes obtener de localStorage, cookies, login, etc.
-    const idPerfil = localStorage.getItem("idPerfil") || 1;
+    const idPerfil = localStorage.getItem("idPerfil");
 
-    function buildMenuTree(modulos) {
-      const mapa = {};
-      const raiz = [];
+  if (!idPerfil) {
+    // Si no hay perfil, redirige al login
+    window.location.href = "login.html";
+  }
 
-      modulos.forEach(modulo => {
-        mapa[modulo.idModulo] = { ...modulo, hijos: [] };
-      });
+  // Acción del botón de cerrar sesión
+  document.getElementById("logout-btn").addEventListener("click", function(e) {
+    e.preventDefault();
+    localStorage.removeItem("idPerfil");
+    window.location.href = "login.html"; // Redirige al login o landing
+  });
 
-      modulos.forEach(modulo => {
-        if (modulo.idModuloPadre) {
-          mapa[modulo.idModuloPadre]?.hijos.push(mapa[modulo.idModulo]);
-        } else {
-          raiz.push(mapa[modulo.idModulo]);
+  // Función para construir árbol de módulos
+  function buildMenuTree(modulos) {
+    const mapa = {};
+    const raiz = [];
+
+    modulos.forEach(modulo => {
+      mapa[modulo.idModulo] = { ...modulo, hijos: [] };
+    });
+
+    modulos.forEach(modulo => {
+      if (modulo.idModuloPadre) {
+        if (mapa[modulo.idModuloPadre]) {
+          mapa[modulo.idModuloPadre].hijos.push(mapa[modulo.idModulo]);
         }
+      } else {
+        raiz.push(mapa[modulo.idModulo]);
+      }
+    });
+
+    return raiz;
+  }
+
+  // Verifica si el módulo tiene al menos un permiso activo
+  function tienePermiso(modulo) {
+    return (
+      parseInt(modulo.consultar) === 1 ||
+      parseInt(modulo.agregar) === 1 ||
+      parseInt(modulo.editar) === 1 ||
+      parseInt(modulo.eliminar) === 1
+    );
+  }
+
+  // Filtra recursivamente los módulos por permisos
+  function filtrarModulosPorPermiso(modulos) {
+    return modulos
+      .filter(modulo => tienePermiso(modulo))
+      .map(modulo => {
+        return {
+          ...modulo,
+          hijos: filtrarModulosPorPermiso(modulo.hijos || [])
+        };
       });
+  }
 
-      return raiz;
-    }
+  // Renderiza el menú
+  function renderMenu(modulos, contenedor) {
+    modulos.forEach(modulo => {
+      const item = document.createElement("div");
+      item.classList.add("menu-item");
 
-    function renderMenu(modulos, contenedor) {
-      modulos.forEach(modulo => {
-        const item = document.createElement("div");
-        item.classList.add("menu-item");
+      const link = document.createElement("a");
+      link.innerHTML = `<i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}`;
 
-        const link = document.createElement("a");
-        link.innerHTML = `<i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}`;
+      if (modulo.ruta && modulo.ruta !== "") {
+        link.href = modulo.ruta;
+      } else {
+        link.href = "#";
+        link.addEventListener("click", e => {
+          e.preventDefault();
+          const submenu = item.querySelector(".submenu");
+          if (submenu) submenu.classList.toggle("open");
+        });
+      }
 
-        if (modulo.ruta && modulo.ruta !== "") {
-          link.href = modulo.ruta;
-        } else {
-          link.href = "#";
-          link.addEventListener("click", e => {
-            e.preventDefault();
-            const submenu = item.querySelector(".submenu");
-            if (submenu) submenu.classList.toggle("open");
-          });
-        }
+      item.appendChild(link);
 
-        item.appendChild(link);
+      if (modulo.hijos.length > 0) {
+        const sub = document.createElement("div");
+        sub.classList.add("submenu");
+        renderMenu(modulo.hijos, sub);
+        item.appendChild(sub);
+      }
 
-        if (modulo.hijos.length > 0) {
-          const sub = document.createElement("div");
-          sub.classList.add("submenu");
-          renderMenu(modulo.hijos, sub);
-          item.appendChild(sub);
-        }
+      contenedor.appendChild(item);
+    });
+  }
 
-        contenedor.appendChild(item);
-      });
-    }
-
-    // Cargar desde la API con perfil dinámico
-    fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${idPerfil}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const arbol = buildMenuTree(data.data);
-          const contenedor = document.getElementById("menu-lateral");
-          renderMenu(arbol, contenedor);
-        }
-      });
+  // Cargar desde la API con perfil dinámico
+  fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${idPerfil}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const arbol = buildMenuTree(data.data);
+        const arbolFiltrado = filtrarModulosPorPermiso(arbol);
+        const contenedor = document.getElementById("menu-lateral");
+        renderMenu(arbolFiltrado, contenedor);
+      }
+    });
   </script>
 </body>
 </html>
