@@ -194,7 +194,7 @@
       try {
         // Para pruebas, puedes usar datos estáticos como los proporcionados
         // Descomenta esta sección para usar la API real
-        const response = await fetch(`https://tuservidor/api/modulos?idPerfil=${idPerfil}`);
+        const response = await fetch(`https://tuservidor/api/modulos.php?idPerfil=${idPerfil}`);
         const data = await response.json();
         return data.data || [];
         
