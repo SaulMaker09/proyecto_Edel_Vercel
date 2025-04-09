@@ -39,20 +39,46 @@
     .submenu .nav-link {
       font-size: 0.9rem;
     }
+    .user-info {
+      text-align: center;
+      padding: 15px;
+    }
+    .user-info img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+    .user-info h5 {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+    .logout-btn {
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    .logout-btn:hover {
+      color: #dc3545;
+    }
   </style>
 </head>
 <body>
   <div id="sidebar">
-    <div class="p-3">
-      <h4 id="user-name">Usuario</h4>
-      <hr />
-      <ul class="nav flex-column" id="menu">
-        <!-- Menú generado dinámicamente -->
-      </ul>
+    <div class="user-info">
+      <img src="https://ui-avatars.com/api/?name=Usuario&background=0D8ABC&color=fff" alt="Avatar" id="avatar-img" />
+      <h5 id="user-name">Usuario</h5>
+      <a href="#" class="logout-btn" id="logout-btn"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
     </div>
+    <hr class="text-light" />
+    <ul class="nav flex-column" id="menu">
+      <!-- Menú generado dinámicamente -->
+    </ul>
   </div>
+
   <div id="content">
-    <button class="btn btn-secondary" id="toggleSidebar">Toggle Menu</button>
+    <button class="btn btn-secondary mb-3" id="toggleSidebar">Toggle Menu</button>
     <div id="main-content">
       <!-- Contenido principal -->
     </div>
@@ -68,11 +94,11 @@
         return;
       }
 
+      // Mostrar nombre y avatar
       document.getElementById('user-name').textContent = user.nombreCompleto;
+      document.getElementById('avatar-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombreCompleto)}&background=0D8ABC&color=fff`;
 
-      const menuContainer = document.getElementById('menu');
-
-      // Función para crear ítems de menú de forma recursiva
+      // Función para generar submenús recursivamente
       function createMenuRecursive(modulo) {
         const li = document.createElement('li');
         li.classList.add('nav-item');
@@ -80,11 +106,10 @@
         const hasChildren = modulo.submodulos && modulo.submodulos.length > 0;
         const link = document.createElement('a');
         link.classList.add('nav-link', 'd-flex', 'justify-content-between', 'align-items-center');
-        link.href = hasChildren ? `#collapse-${modulo.idModulo}` : (modulo.ruta || '#');
-        link.setAttribute('data-id', modulo.idModulo);
         link.innerHTML = `<span><i class="bi ${modulo.icono} me-2"></i>${modulo.nombreModulo}</span>`;
 
         if (hasChildren) {
+          link.href = `#collapse-${modulo.idModulo}`;
           link.setAttribute('data-bs-toggle', 'collapse');
           link.setAttribute('aria-expanded', 'false');
           link.setAttribute('aria-controls', `collapse-${modulo.idModulo}`);
@@ -102,13 +127,14 @@
           li.appendChild(link);
           li.appendChild(submenu);
         } else {
+          link.href = modulo.ruta || '#';
           li.appendChild(link);
         }
 
         return li;
       }
 
-      // Reorganiza el menú jerárquicamente
+      // Construir jerarquía
       function buildMenu(modulos, parentId = null) {
         return modulos
           .filter(m => m.idModuloPadre === parentId)
@@ -119,15 +145,25 @@
           });
       }
 
-      // Construcción del menú estructurado
+      // Armar menú
       const structuredMenu = buildMenu(menu);
+      const menuContainer = document.getElementById('menu');
       structuredMenu.forEach(modulo => {
         const menuItem = createMenuRecursive(modulo);
         menuContainer.appendChild(menuItem);
       });
 
+      // Toggle menú lateral
       document.getElementById('toggleSidebar').addEventListener('click', function () {
         document.getElementById('sidebar').classList.toggle('collapsed');
+      });
+
+      // Cerrar sesión
+      document.getElementById('logout-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        localStorage.removeItem('user');
+        localStorage.removeItem('menu');
+        window.location.href = 'login.html';
       });
     });
   </script>
