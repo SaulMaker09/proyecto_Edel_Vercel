@@ -1,173 +1,129 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Menú dinámico</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body {
       display: flex;
-      height: 100vh;
+      min-height: 100vh;
       overflow: hidden;
     }
     #sidebar {
-      width: 250px;
-      background-color: #343a40;
+      width: 260px;
+      background-color: #2c3e50;
       color: white;
-      transition: all 0.3s;
-      overflow-y: auto;
+      padding: 20px;
     }
-    #sidebar.collapsed {
-      width: 80px;
-    }
-    #sidebar .nav-link {
+    .menu-item > a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
       color: white;
+      text-decoration: none;
+      border-radius: 4px;
     }
-    #sidebar .nav-link:hover {
-      background-color: #495057;
+    .menu-item > a:hover {
+      background-color: #34495e;
+    }
+    .submenu {
+      margin-left: 15px;
+      margin-top: 5px;
+    }
+    .d-none {
+      display: none;
     }
     #content {
       flex-grow: 1;
       padding: 20px;
-      overflow-y: auto;
-    }
-    .submenu {
-      padding-left: 1rem;
-    }
-    .submenu .nav-link {
-      font-size: 0.9rem;
-    }
-    .user-info {
-      text-align: center;
-      padding: 15px;
-    }
-    .user-info img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-    }
-    .user-info h5 {
-      margin-top: 10px;
-      font-size: 1rem;
-    }
-    .logout-btn {
-      color: white;
-      text-decoration: none;
-      display: inline-block;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-    .logout-btn:hover {
-      color: #dc3545;
+      background-color: #ecf0f1;
     }
   </style>
 </head>
 <body>
+  <!-- Sidebar -->
   <div id="sidebar">
-    <div class="user-info">
-      <img src="https://ui-avatars.com/api/?name=Usuario&background=0D8ABC&color=fff" alt="Avatar" id="avatar-img" />
-      <h5 id="user-name">Usuario</h5>
-      <a href="#" class="logout-btn" id="logout-btn"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+    <div class="text-center mb-4">
+      <div class="rounded-circle bg-info text-white fw-bold fs-4 d-inline-block p-3">AS</div>
+      <p class="mt-2 mb-0 fw-semibold">Administrador del Sistema</p>
+      <a href="#" class="text-white text-decoration-none small"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
     </div>
-    <hr class="text-light" />
-    <ul class="nav flex-column" id="menu">
-      <!-- Menú generado dinámicamente -->
-    </ul>
+    <div id="menu-lateral"></div>
   </div>
 
+  <!-- Contenido principal -->
   <div id="content">
-    <button class="btn btn-secondary mb-3" id="toggleSidebar">Toggle Menu</button>
-    <div id="main-content">
-      <!-- Contenido principal -->
-    </div>
+    <h1>Bienvenido al Dashboard</h1>
+    <p>Selecciona un módulo del menú para continuar.</p>
   </div>
 
+  <!-- JS -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const menu = JSON.parse(localStorage.getItem('menu'));
+    function buildMenuTree(modulos) {
+      const mapa = {};
+      const raiz = [];
 
-      if (!user || !menu) {
-        window.location.href = 'login.html';
-        return;
-      }
+      modulos.forEach(modulo => {
+        mapa[modulo.idModulo] = { ...modulo, hijos: [] };
+      });
 
-      // Mostrar nombre y avatar
-      document.getElementById('user-name').textContent = user.nombreCompleto;
-      document.getElementById('avatar-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombreCompleto)}&background=0D8ABC&color=fff`;
-
-      // Función para generar submenús recursivamente
-      function createMenuRecursive(modulo) {
-        const li = document.createElement('li');
-        li.classList.add('nav-item');
-
-        const hasChildren = modulo.submodulos && modulo.submodulos.length > 0;
-        const link = document.createElement('a');
-        link.classList.add('nav-link', 'd-flex', 'justify-content-between', 'align-items-center');
-        link.innerHTML = `<span><i class="bi ${modulo.icono} me-2"></i>${modulo.nombreModulo}</span>`;
-
-        if (hasChildren) {
-          link.href = `#collapse-${modulo.idModulo}`;
-          link.setAttribute('data-bs-toggle', 'collapse');
-          link.setAttribute('aria-expanded', 'false');
-          link.setAttribute('aria-controls', `collapse-${modulo.idModulo}`);
-          link.innerHTML += '<i class="bi bi-chevron-down"></i>';
-
-          const submenu = document.createElement('ul');
-          submenu.classList.add('nav', 'flex-column', 'collapse', 'submenu');
-          submenu.id = `collapse-${modulo.idModulo}`;
-
-          modulo.submodulos.forEach(child => {
-            const subItem = createMenuRecursive(child);
-            submenu.appendChild(subItem);
-          });
-
-          li.appendChild(link);
-          li.appendChild(submenu);
+      modulos.forEach(modulo => {
+        if (modulo.idModuloPadre) {
+          mapa[modulo.idModuloPadre]?.hijos.push(mapa[modulo.idModulo]);
         } else {
-          link.href = modulo.ruta || '#';
-          li.appendChild(link);
+          raiz.push(mapa[modulo.idModulo]);
+        }
+      });
+
+      return raiz;
+    }
+
+    function renderMenu(modulos, contenedor) {
+      modulos.forEach(modulo => {
+        const item = document.createElement("div");
+        item.classList.add("menu-item");
+
+        const link = document.createElement("a");
+        link.innerHTML = `<i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}`;
+        
+        if (modulo.ruta && modulo.ruta !== "") {
+          link.href = modulo.ruta;
+        } else {
+          link.href = "#";
+          link.addEventListener("click", e => {
+            e.preventDefault();
+            const submenu = item.querySelector(".submenu");
+            if (submenu) submenu.classList.toggle("d-none");
+          });
         }
 
-        return li;
-      }
+        item.appendChild(link);
 
-      // Construir jerarquía
-      function buildMenu(modulos, parentId = null) {
-        return modulos
-          .filter(m => m.idModuloPadre === parentId)
-          .sort((a, b) => a.orden - b.orden)
-          .map(m => {
-            m.submodulos = buildMenu(modulos, m.idModulo);
-            return m;
-          });
-      }
+        if (modulo.hijos.length > 0) {
+          const sub = document.createElement("div");
+          sub.classList.add("submenu", "d-none");
+          renderMenu(modulo.hijos, sub);
+          item.appendChild(sub);
+        }
 
-      // Armar menú
-      const structuredMenu = buildMenu(menu);
-      const menuContainer = document.getElementById('menu');
-      structuredMenu.forEach(modulo => {
-        const menuItem = createMenuRecursive(modulo);
-        menuContainer.appendChild(menuItem);
+        contenedor.appendChild(item);
       });
+    }
 
-      // Toggle menú lateral
-      document.getElementById('toggleSidebar').addEventListener('click', function () {
-        document.getElementById('sidebar').classList.toggle('collapsed');
+    // Cargar desde la API
+    fetch("https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=1")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const arbol = buildMenuTree(data.data);
+          const contenedor = document.getElementById("menu-lateral");
+          renderMenu(arbol, contenedor);
+        }
       });
-
-      // Cerrar sesión
-      document.getElementById('logout-btn').addEventListener('click', function (e) {
-        e.preventDefault();
-        localStorage.removeItem('user');
-        localStorage.removeItem('menu');
-        window.location.href = 'login.html';
-      });
-    });
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
