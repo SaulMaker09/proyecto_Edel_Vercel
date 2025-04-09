@@ -1,126 +1,137 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        #sidebar {
-            width: 250px;
-            background-color: #343a40;
-            color: white;
-            transition: all 0.3s;
-        }
-        #sidebar.collapsed {
-            width: 80px;
-        }
-        #sidebar .nav-link {
-            color: white;
-        }
-        #sidebar .nav-link:hover {
-            background-color: #495057;
-        }
-        #content {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .submenu {
-            padding-left: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #sidebar {
+      width: 250px;
+      background-color: #343a40;
+      color: white;
+      transition: all 0.3s;
+      overflow-y: auto;
+    }
+    #sidebar.collapsed {
+      width: 80px;
+    }
+    #sidebar .nav-link {
+      color: white;
+    }
+    #sidebar .nav-link:hover {
+      background-color: #495057;
+    }
+    #content {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .submenu {
+      padding-left: 1rem;
+    }
+    .submenu .nav-link {
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-    <div id="sidebar">
-        <div class="p-3">
-            <h4 id="user-name">Usuario</h4>
-            <hr>
-            <ul class="nav flex-column" id="menu">
-                <!-- Menú generado dinámicamente -->
-            </ul>
-        </div>
+  <div id="sidebar">
+    <div class="p-3">
+      <h4 id="user-name">Usuario</h4>
+      <hr />
+      <ul class="nav flex-column" id="menu">
+        <!-- Menú generado dinámicamente -->
+      </ul>
     </div>
-    <div id="content">
-        <button class="btn btn-secondary" id="toggleSidebar">Toggle Menu</button>
-        <div id="main-content">
-            <!-- Contenido principal -->
-        </div>
+  </div>
+  <div id="content">
+    <button class="btn btn-secondary" id="toggleSidebar">Toggle Menu</button>
+    <div id="main-content">
+      <!-- Contenido principal -->
     </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            const menu = JSON.parse(localStorage.getItem('menu'));
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const menu = JSON.parse(localStorage.getItem('menu'));
 
-            if (!user || !menu) {
-                window.location.href = 'login.html';
-                return;
-            }
+      if (!user || !menu) {
+        window.location.href = 'login.html';
+        return;
+      }
 
-            document.getElementById('user-name').textContent = user.nombreCompleto;
+      document.getElementById('user-name').textContent = user.nombreCompleto;
 
-            const menuContainer = document.getElementById('menu');
+      const menuContainer = document.getElementById('menu');
 
-            function createMenuItem(modulo) {
-                const li = document.createElement('li');
-                li.classList.add('nav-item');
+      // Función para crear ítems de menú de forma recursiva
+      function createMenuRecursive(modulo) {
+        const li = document.createElement('li');
+        li.classList.add('nav-item');
 
-                const link = document.createElement('a');
-                link.classList.add('nav-link');
-                link.href = modulo.ruta || '#';
-                link.innerHTML = `<i class="bi ${modulo.icono}"></i> ${modulo.nombreModulo}`;
+        const hasChildren = modulo.submodulos && modulo.submodulos.length > 0;
+        const link = document.createElement('a');
+        link.classList.add('nav-link', 'd-flex', 'justify-content-between', 'align-items-center');
+        link.href = hasChildren ? `#collapse-${modulo.idModulo}` : (modulo.ruta || '#');
+        link.setAttribute('data-id', modulo.idModulo);
+        link.innerHTML = `<span><i class="bi ${modulo.icono} me-2"></i>${modulo.nombreModulo}</span>`;
 
-                li.appendChild(link);
+        if (hasChildren) {
+          link.setAttribute('data-bs-toggle', 'collapse');
+          link.setAttribute('aria-expanded', 'false');
+          link.setAttribute('aria-controls', `collapse-${modulo.idModulo}`);
+          link.innerHTML += '<i class="bi bi-chevron-down"></i>';
 
-                if (modulo.submodulos && modulo.submodulos.length > 0) {
-                    link.href = '#';
-                    link.setAttribute('data-bs-toggle', 'collapse');
-                    link.setAttribute('data-bs-target', `#submenu-${modulo.idModulo}`);
+          const submenu = document.createElement('ul');
+          submenu.classList.add('nav', 'flex-column', 'collapse', 'submenu');
+          submenu.id = `collapse-${modulo.idModulo}`;
 
-                    const submenu = document.createElement('ul');
-                    submenu.classList.add('nav', 'flex-column', 'collapse', 'submenu');
-                    submenu.id = `submenu-${modulo.idModulo}`;
+          modulo.submodulos.forEach(child => {
+            const subItem = createMenuRecursive(child);
+            submenu.appendChild(subItem);
+          });
 
-                    modulo.submodulos.forEach(sub => {
-                        const subItem = createMenuItem(sub);
-                        submenu.appendChild(subItem);
-                    });
+          li.appendChild(link);
+          li.appendChild(submenu);
+        } else {
+          li.appendChild(link);
+        }
 
-                    li.appendChild(submenu);
-                }
+        return li;
+      }
 
-                return li;
-            }
+      // Reorganiza el menú jerárquicamente
+      function buildMenu(modulos, parentId = null) {
+        return modulos
+          .filter(m => m.idModuloPadre === parentId)
+          .sort((a, b) => a.orden - b.orden)
+          .map(m => {
+            m.submodulos = buildMenu(modulos, m.idModulo);
+            return m;
+          });
+      }
 
-            function buildMenu(modulos, parentId = null) {
-                return modulos
-                    .filter(m => m.idModuloPadre === parentId)
-                    .sort((a, b) => a.orden - b.orden)
-                    .map(m => {
-                        m.submodulos = buildMenu(modulos, m.idModulo);
-                        return m;
-                    });
-            }
+      // Construcción del menú estructurado
+      const structuredMenu = buildMenu(menu);
+      structuredMenu.forEach(modulo => {
+        const menuItem = createMenuRecursive(modulo);
+        menuContainer.appendChild(menuItem);
+      });
 
-            const structuredMenu = buildMenu(menu);
+      document.getElementById('toggleSidebar').addEventListener('click', function () {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      });
+    });
+  </script>
 
-            structuredMenu.forEach(modulo => {
-                const menuItem = createMenuItem(modulo);
-                menuContainer.appendChild(menuItem);
-            });
-
-            document.getElementById('toggleSidebar').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.toggle('collapsed');
-            });
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
