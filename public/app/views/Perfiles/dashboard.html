@@ -197,6 +197,7 @@
         const response = await fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${idPerfil}`);
         const data = await response.json();
         return data.data || [];
+        console.log(response);
         
         /* Datos estáticos para pruebas
         return JSON.parse(`{
