@@ -104,46 +104,97 @@
             color: #4e73df;
             font-weight: 600;
         }
+
+        /* Navbar */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            color: var(--secondary-color);
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            color: var(--dark-color);
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        .prueba{
+            padding-top: 65px !important; /* Para compensar el navbar */
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid px-4 py-3">
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">Mi Proyecto en Phalcon</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/index.html">Inicio</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/public/vistasp/home.html">Login</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEditarBD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                              Editar BD
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownEditarBD">
-                              <li><a class="dropdown-item" href="/public/app/views/index/hola.html">Hola Mundo</a></li>
-                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html">Usuarios</a></li>
-                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html">Perfiles</a></li>
-                              <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html">Módulos</a></li>
-                            </ul>
-                          </li>
-                          
-                        <li class="nav-item">
-                            <a class="nav-link" href="/public/app/views/prueba.html">CRUD</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/public/app/views/Perfiles/login.html">Login Modulos</a>
-                        </li>
-                    </ul>
+        <div class="container-fluid px-4 py-3 animate__animated animate__fadeIn prueba" >
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="/">
+                        <i class="bi bi-box-seam"></i> Sistema de Gestión
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/index.html">Inicio</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/public/vistasp/home.html">Login</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEditarBD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-database"></i> Editar BD
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownEditarBD">
+                                    <li><a class="dropdown-item" href="/public/app/views/index/hola.html"><i class="bi bi-code-slash"></i> Hola Mundo</a></li>
+                                    <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html"><i class="bi bi-people"></i> Usuarios</a></li>
+                                    <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html"><i class="bi bi-person-badge"></i> Perfiles</a></li>
+                                    <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html"><i class="bi bi-menu-button"></i> Módulos</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/public/app/views/prueba.html"><i class="bi bi-table"></i> CRUD</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/public/app/views/Perfiles/login.html"><i class="bi bi-box-arrow-in-right"></i> Login Modulos</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>  
         <!-- Encabezado -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
