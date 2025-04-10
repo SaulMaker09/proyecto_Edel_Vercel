@@ -5,27 +5,284 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #224abe;
+            --dark-color: #2e3a4d;
+            --light-color: #f8f9fa;
+        }
+        
         body {
-            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
             height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            color: var(--secondary-color);
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            color: var(--dark-color);
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        /* Layout */
+        .login-container {
+            display: flex;
+            height: 100vh;
+            padding-top: 56px; /* Para compensar el navbar */
+        }
+        
+        .login-form-container {
+            width: 50%;
             display: flex;
             align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background-color: white;
+            animation: fadeInLeft 0.8s ease-out;
         }
-        .login-container {
+        
+        .login-image-container {
+            width: 50%;
+            background: linear-gradient(rgba(78, 115, 223, 0.8), rgba(34, 74, 190, 0.8)), 
+                        url('https://source.unsplash.com/random/1200x800?office,work') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            animation: fadeInRight 0.8s ease-out;
+        }
+        
+        /* Form styles */
+        .login-box {
             max-width: 400px;
             width: 100%;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #e3e6f0;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-login {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-login:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        /* Image section */
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+        
+        .welcome-text {
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        /* Animations */
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Input animations */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            padding-left: 3rem;
+        }
+        
+        .form-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+        
+        .form-group input:focus + i {
+            opacity: 1;
+            left: 0.8rem;
+        }
+        
+        /* Error message */
+        .error-message {
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .login-container {
+                flex-direction: column;
+            }
+            
+            .login-form-container, .login-image-container {
+                width: 100%;
+                height: auto;
+            }
+            
+            .login-image-container {
+                padding: 2rem 1rem;
+                order: -1;
+                height: 200px;
+            }
+            
+            .login-form-container {
+                padding: 2rem 1rem;
+            }
+            
+            .welcome-title {
+                font-size: 1.8rem;
+            }
+            
+            .welcome-text {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Mi Proyecto en Phalcon</a>
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-box-seam"></i> Sistema de Gestión
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -39,51 +296,73 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownEditarBD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                          Editar BD
+                            <i class="bi bi-database"></i> Editar BD
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownEditarBD">
-                          <li><a class="dropdown-item" href="/public/app/views/index/hola.html">Hola Mundo</a></li>
-                          <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html">Usuarios</a></li>
-                          <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html">Perfiles</a></li>
-                          <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html">Módulos</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownEditarBD">
+                            <li><a class="dropdown-item" href="/public/app/views/index/hola.html"><i class="bi bi-code-slash"></i> Hola Mundo</a></li>
+                            <li><a class="dropdown-item" href="/public/app/views/Perfiles/usuarios.html"><i class="bi bi-people"></i> Usuarios</a></li>
+                            <li><a class="dropdown-item" href="/public/app/views/Perfiles/perfiles.html"><i class="bi bi-person-badge"></i> Perfiles</a></li>
+                            <li><a class="dropdown-item" href="/public/app/views/Perfiles/modulos.html"><i class="bi bi-menu-button"></i> Módulos</a></li>
                         </ul>
-                      </li>
-                      
-                    <li class="nav-item">
-                        <a class="nav-link" href="/public/app/views/prueba.html">CRUD</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/public/app/views/Perfiles/login.html">Login Modulos</a>
+                        <a class="nav-link" href="/public/app/views/prueba.html"><i class="bi bi-table"></i> CRUD</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/app/views/Perfiles/login.html"><i class="bi bi-box-arrow-in-right"></i> Login Modulos</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>  
-    <div class="container d-flex justify-content-center">
+    
+    <div class="login-container">
+        <div class="login-form-container">
+            <div class="login-box">
+                <h2 class="login-title">Iniciar Sesión</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <i class="bi bi-person"></i>
+                        <input type="text" class="form-control" id="usuario" placeholder="Usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" class="form-control" id="contrasena" placeholder="Contraseña" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login mt-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Ingresar
+                    </button>
+                </form>
+                <div id="errorMessage" class="mt-4 alert alert-danger d-none error-message"></div>
+            </div>
+        </div>
         
-        <div class="login-container">
-            <h2 class="text-center mb-4">Iniciar Sesión</h2>
-            <form id="loginForm">
-                <div class="mb-3">
-                    <label for="usuario" class="form-label">Usuario</label>
-                    <input type="text" class="form-control" id="usuario" required>
-                </div>
-                <div class="mb-3">
-                    <label for="contrasena" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="contrasena" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-            </form>
-            <div id="errorMessage" class="mt-3 alert alert-danger d-none"></div>
+        <div class="login-image-container">
+            <h1 class="welcome-title">Bienvenido al Sistema</h1>
+            <p class="welcome-text">Ingresa tus credenciales para acceder al panel de administración y gestionar todos los módulos del sistema.</p>
+            <div class="d-flex gap-3">
+                <a href="#" class="text-white"><i class="bi bi-facebook fs-4"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-twitter fs-4"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-linkedin fs-4"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-github fs-4"></i></a>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const usuario = document.getElementById('usuario').value;
             const contrasena = document.getElementById('contrasena').value;
+            const errorDiv = document.getElementById('errorMessage');
+            
+            // Mostrar animación de carga
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Validando...';
+            submitBtn.disabled = true;
             
             fetch('https://goldenrod-grouse-151833.hostingersite.com/auth.php', {
                 method: 'POST',
@@ -95,21 +374,57 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Animación de éxito
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> ¡Bienvenido!';
+                    submitBtn.classList.remove('btn-primary');
+                    submitBtn.classList.add('btn-success');
+                    
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('menu', JSON.stringify(data.menu));
-                    window.location.href = './dashboard.html';
+                    
+                    // Redirección después de un breve retraso
+                    setTimeout(() => {
+                        window.location.href = './dashboard.html';
+                    }, 1000);
                 } else {
-                    const errorDiv = document.getElementById('errorMessage');
+                    // Mostrar error con animación
                     errorDiv.textContent = data.message || 'Error al iniciar sesión';
                     errorDiv.classList.remove('d-none');
-                    console.log(usuario, contrasena);
+                    errorDiv.classList.add('error-message');
+                    
+                    // Restaurar botón
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    
+                    // Eliminar clase de animación después de que termine
+                    setTimeout(() => {
+                        errorDiv.classList.remove('error-message');
+                    }, 500);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                const errorDiv = document.getElementById('errorMessage');
                 errorDiv.textContent = 'Error al conectar con el servidor';
                 errorDiv.classList.remove('d-none');
+                errorDiv.classList.add('error-message');
+                
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                setTimeout(() => {
+                    errorDiv.classList.remove('error-message');
+                }, 500);
+            });
+        });
+        
+        // Efecto hover para inputs
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentNode.querySelector('i').style.color = 'var(--secondary-color)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentNode.querySelector('i').style.color = 'var(--primary-color)';
             });
         });
     </script>
