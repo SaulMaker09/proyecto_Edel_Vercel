@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
         :root {
             --sidebar-width: 280px;
             --primary-color: #4e73df;
@@ -553,906 +554,146 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
             Sistema de Gestión
         </div>
-        <div class="user-info">
-            <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Usuario" id="userAvatar">
-            <div class="user-name" id="userName"></div>
-            <div class="user-role" id="userRole"></div>
-            <button class="logout-btn" id="logoutBtn">
-                <i class="bi bi-box-arrow-right"></i> <span class="sidebar-text">Cerrar Sesión</span>
-            </button>
-        </div>
-        <ul class="sidebar-menu" id="menuContainer">
-            <!-- El menú se generará dinámicamente -->
-        </ul>
-    </div>
+<div class="user-info">
+<img alt="Usuario" id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&amp;background=random"/>
+<div class="user-name" id="userName"></div>
+<div class="user-role" id="userRole"></div>
+<button class="logout-btn" id="logoutBtn">
+<i class="bi bi-box-arrow-right"></i> <span class="sidebar-text">Cerrar Sesión</span>
+</button>
+</div>
+<ul class="sidebar-menu" id="menuContainer">
+<!-- El menú se generará dinámicamente -->
+</ul>
+</div>
+<!-- Toggle Sidebar Button -->
+<button class="toggle-sidebar" id="toggleSidebar">
+<i class="bi bi-chevron-left" id="toggleIcon"></i>
+</button>
+<!-- Main Content -->
+<div class="main-content">
+<div class="container-fluid">
+<div class="page-header">
+<h1 class="page-title" id="moduleTitle">Bienvenido al Sistema</h1>
+<div class="breadcrumb" id="breadcrumb"></div>
+</div>
+<!-- Contenido del módulo -->
+<div id="moduleContent">
+<div class="text-center py-5">
+<i class="bi bi-house-door" style="font-size: 3rem; color: var(--primary-color);"></i>
+<h3 class="mt-3">Seleccione un módulo del menú para comenzar</h3>
+<p class="text-muted">Su panel de control muestra información relevante según sus permisos</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Toast para notificaciones -->
+<div class="toast-container">
+<!-- Las notificaciones se generarán dinámicamente -->
+</div>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Script para el dashboard -->
 
-    <!-- Toggle Sidebar Button -->
-    <button class="toggle-sidebar" id="toggleSidebar">
-        <i class="bi bi-chevron-left" id="toggleIcon"></i>
-    </button>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container-fluid">
-            <div class="page-header">
-                <h1 class="page-title" id="moduleTitle">Bienvenido al Sistema</h1>
-                <div id="breadcrumb" class="breadcrumb"></div>
-            </div>
-            
-            <!-- Contenido del módulo -->
-            <div id="moduleContent">
-                <div class="text-center py-5">
-                    <i class="bi bi-house-door" style="font-size: 3rem; color: var(--primary-color);"></i>
-                    <h3 class="mt-3">Seleccione un módulo del menú para comenzar</h3>
-                    <p class="text-muted">Su panel de control muestra información relevante según sus permisos</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast para notificaciones -->
-    <div class="toast-container">
-        <!-- Las notificaciones se generarán dinámicamente -->
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script para el dashboard -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos del DOM
-            const sidebar = document.getElementById('sidebar');
-            const toggleSidebar = document.getElementById('toggleSidebar');
-            const toggleIcon = document.getElementById('toggleIcon');
-            const menuContainer = document.getElementById('menuContainer');
-            const userName = document.getElementById('userName');
-            const userRole = document.getElementById('userRole');
-            const userAvatar = document.getElementById('userAvatar');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const moduleTitle = document.getElementById('moduleTitle');
-            const moduleContent = document.getElementById('moduleContent');
-            const breadcrumb = document.getElementById('breadcrumb');
-
-            // Verificar autenticación
-            checkAuth();
-
-            // Función para verificar autenticación
-            function checkAuth() {
-                const user = JSON.parse(localStorage.getItem('user'));
-                const menuData = JSON.parse(localStorage.getItem('menu'));
-                
-                if (!user || !menuData) {
-                    window.location.href = './login.html';
-                    return;
-                }
-                
-                // Mostrar información del usuario
-                displayUserInfo(user);
-                
-                // Generar el menú según permisos
-                generateMenu(menuData, user.idPerfil);
-                
-                // Cargar módulo inicial si hay uno en la URL
-                loadInitialModule();
-            }
-
-            // Mostrar información del usuario
-            function displayUserInfo(user) {
-                userName.textContent = user.nombreCompleto || 'Usuario';
-                userRole.textContent = user.nombrePerfil || 'Perfil';
-                
-                // Generar avatar si no hay imagen
-                if (!user.avatar) {
-                    const initials = (user.nombreCompleto || 'Usuario').split(' ').map(n => n[0]).join('');
-                    userAvatar.src = `https://ui-avatars.com/api/?name=${initials}&background=random`;
-                } else {
-                    userAvatar.src = user.avatar;
-                }
-            }
-
-            // Generar menú dinámico
-            function generateMenu(menu, profileId) {
-                menuContainer.innerHTML = '';
-                
-                // Agregar Home
-                const homeItem = document.createElement('li');
-                homeItem.className = 'nav-item';
-                homeItem.innerHTML = `
-                    <a href="#" class="nav-link" data-module="home" data-title="Inicio">
-                        <i class="bi bi-house-door"></i>
-                        <span class="sidebar-text">Inicio</span>
-                    </a>
-                `;
-                menuContainer.appendChild(homeItem);
-                
-                // Procesar cada módulo y submódulo
-                const processedModules = new Set(); // Conjunto para seguir los módulos ya procesados
-                
-                // Primero procesar los módulos para garantizar que se muestran aunque no tengan submódulos disponibles
-                menu.forEach(item => {
-                    if (!processedModules.has(item.idModulo)) {
-                        const hasVisibleSubmodules = item.submodulos && item.submodulos.some(submodulo => 
-                            hasPermissions(submodulo, profileId)
-                        );
-                        
-                        // Verificar si el propio módulo tiene permisos o tiene submódulos con permisos
-                        if (hasPermissions(item, profileId) || hasVisibleSubmodules) {
-                            createModuleItem(item, profileId);
-                            processedModules.add(item.idModulo);
-                        }
-                    }
-                });
-            }
-
-            // Verificar permisos
-            function hasPermissions(module, profileId) {
-                // Aquí se implementaría la lógica para verificar permisos
-                // Por ejemplo, si el módulo tiene una propiedad "permisos" que es un array que incluye el profileId
-                return true; // Por defecto, mostramos todos los módulos
-            }
-
-            // Crear elemento de menú para un módulo
-            function createModuleItem(item, profileId, parentUl = menuContainer) {
-                const moduleItem = document.createElement('li');
-                moduleItem.className = 'nav-item';
-                
-                const hasVisibleSubmodules = item.submodulos && item.submodulos.some(submodulo => 
-                    hasPermissions(submodulo, profileId)
-                );
-                
-                if (hasVisibleSubmodules) {
-                    // Módulo con submódulos
-                    const submenuId = `submenu-${item.idModulo}`;
-                    
-                    moduleItem.innerHTML = `
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                           data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
-                            <i class="bi ${item.icono || 'bi-folder'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                            <i class="bi bi-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="submenu collapse" id="${submenuId}"></ul>
-                    `;
-                    
-                    parentUl.appendChild(moduleItem);
-                    
-                    // Crear submódulos
-                    const submenuElement = moduleItem.querySelector(`#${submenuId}`);
-                    item.submodulos.forEach(submodule => {
-                        if (hasPermissions(submodule, profileId)) {
-                            createSubmoduleItem(submodule, profileId, submenuElement);
-                        }
-                    });
-                } else if (hasPermissions(item, profileId)) {
-                    // Módulo simple sin submódulos o sin submódulos visibles
-                    moduleItem.innerHTML = `
-                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
-                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                        </a>
-                    `;
-                    parentUl.appendChild(moduleItem);
-                }
-            }
-
-            // Crear elemento de menú para un submódulo
-            function createSubmoduleItem(item, profileId, parentUl) {
-                if (!hasPermissions(item, profileId)) return;
-                
-                const moduleItem = document.createElement('li');
-                moduleItem.className = 'nav-item';
-                
-                // Verificar si tiene submódulos anidados
-                if (item.submodulos && item.submodulos.length > 0) {
-                    const submenuId = `submenu-${item.idModulo}`;
-                    
-                    moduleItem.innerHTML = `
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                           data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
-                            <i class="bi ${item.icono || 'bi-folder'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                            <i class="bi bi-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="submenu collapse" id="${submenuId}"></ul>
-                    `;
-                    
-                    parentUl.appendChild(moduleItem);
-                    
-                    // Recursivamente crear submódulos anidados
-                    const submenuElement = moduleItem.querySelector(`#${submenuId}`);
-                    item.submodulos.forEach(submodule => {
-                        createSubmoduleItem(submodule, profileId, submenuElement);
-                    });
-                } else {
-                    // Submódulo sin más niveles
-                    moduleItem.innerHTML = `
-                        <a href="#" class="nav-link" data-module="${item.ruta}" data-title="${item.nombreModulo}">
-                            <i class="bi ${item.icono || 'bi-file-earmark'}"></i>
-                            <span class="sidebar-text">${item.nombreModulo}</span>
-                        </a>
-                    `;
-                    parentUl.appendChild(moduleItem);
-                }
-            }
-
-            // Cargar módulo inicial desde la URL
-            function loadInitialModule() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const moduleParam = urlParams.get('module');
-                
-                if (moduleParam) {
-                    loadModuleContent(moduleParam);
-                }
-            }
-
-            // Cargar contenido del módulo
-            function loadModuleContent(modulePath, moduleTitleText = '') {
-                showLoader();
-                
-                // Si es el módulo "home", mostrar la pantalla de inicio
-                if (modulePath === 'home') {
-                    resetDashboard();
-                    hideLoader();
-                    return;
-                }
-                
-                // Buscar el título del módulo si no se proporciona
-                if (!moduleTitleText) {
-                    const menuLink = document.querySelector(`[data-module="${modulePath}"]`);
-                    moduleTitleText = menuLink ? (menuLink.getAttribute('data-title') || menuLink.textContent.trim()) : 'Módulo';
-                }
-                
-                // Cargar el contenido
-                fetch(modulePath)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`El módulo no está disponible (${response.status})`);
-                        return response.text();
-                    })
-                    .then(html => {
-                        // Actualizar el título y contenido
-                        moduleTitle.textContent = moduleTitleText;
-                        
-                        // Crear contenedor CRUD estándar
-                        moduleContent.innerHTML = createCrudContainer(moduleTitleText);
-                        
-                        // Insertar el contenido del módulo en el contenedor de detalles
-                        const moduleDetailsContainer = document.getElementById('moduleDetailsContainer');
-                        if (moduleDetailsContainer) {
-                            moduleDetailsContainer.innerHTML = html;
-                        }
-                        
-                        // Actualizar URL y breadcrumb
-                        history.pushState(null, '', `?module=${modulePath}`);
-                        updateBreadcrumb(moduleTitleText);
-                        
-                        // Inicializar plugins y ejecutar scripts
-                        initBootstrapPlugins();
-                        executeModuleScripts();
-                        
-                        // Activar los botones según permisos
-                        updateActionButtons();
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar el módulo:', error);
-                        showError(error.message);
-                    })
-                    .finally(() => {
-                        hideLoader();
-                    });
-            }
-
-            // Crear contenedor CRUD estándar
-            function createCrudContainer(title) {
-                return `
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title h5 m-0">${title}</h2>
-                            <div class="crud-header-actions">
-                                <button class="btn btn-sm btn-primary" id="btnNew" data-action="create">
-                                    <i class="bi bi-plus-circle"></i> Nuevo
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="crud-toolbar">
-                                <div class="crud-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Buscar..." id="searchInput">
-                                        <button class="btn btn-outline-secondary" type="button" id="btnSearch">
-                                            <i class="bi bi-search"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="crud-options">
-                                    <select class="form-select form-select-sm" id="recordsPerPage">
-                                        <option value="10">10 por página</option>
-                                        <option value="25">25 por página</option><option value="50">50 por página</option>
-                                        <option value="100">100 por página</option>
-                                    </select>
-                                    <button class="btn btn-outline-secondary btn-sm" id="btnRefresh">
-                                        <i class="bi bi-arrow-clockwise"></i>
-                                    </button>
-                                    <button class="btn btn-outline-success btn-sm" id="btnExport" data-action="export">
-                                        <i class="bi bi-file-excel"></i> Exportar
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="table-responsive position-relative">
-                                <div class="loader-overlay" id="tableLoader" style="display: none;">
-                                    <div class="spinner-border" role="status">
-                                        <span class="visually-hidden">Cargando...</span>
-                                    </div>
-                                </div>
-                                <table class="table crud-table" id="dataTable">
-                                    <thead>
-                                        <tr id="tableHeader">
-                                            <!-- Los encabezados se generarán dinámicamente -->
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tableBody">
-                                        <!-- Los datos se generarán dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="crud-pagination">
-                                <div class="pagination-info">
-                                    Mostrando <span id="currentRecords">0</span> de <span id="totalRecords">0</span> registros
-                                </div>
-                                <nav aria-label="Paginación">
-                                    <ul class="pagination pagination-sm" id="pagination">
-                                        <!-- La paginación se generará dinámicamente -->
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="moduleDetailsContainer">
-                        <!-- Aquí se cargará el contenido específico del módulo -->
-                    </div>
-                `;
-            }
-
-            // Actualizar breadcrumb
-            function updateBreadcrumb(title) {
-                breadcrumb.innerHTML = `
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#" id="homeBreadcrumb">Inicio</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">${title}</li>
-                        </ol>
-                    </nav>
-                `;
-                
-                // Evento para volver al inicio
-                document.getElementById('homeBreadcrumb')?.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    resetDashboard();
-                });
-            }
-
-            // Resetear dashboard a estado inicial
-            function resetDashboard() {
-                moduleTitle.textContent = 'Bienvenido al Sistema';
-                moduleContent.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-house-door" style="font-size: 3rem; color: var(--primary-color);"></i>
-                        <h3 class="mt-3">Seleccione un módulo del menú para comenzar</h3>
-                        <p class="text-muted">Su panel de control muestra información relevante según sus permisos</p>
-                    </div>
-                `;
-                breadcrumb.innerHTML = '';
-                history.pushState(null, '', window.location.pathname);
-                
-                // Remover clase active de todos los items del menú
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                
-                // Activar el enlace de inicio
-                const homeLink = document.querySelector('[data-module="home"]');
-                if (homeLink) {
-                    homeLink.classList.add('active');
-                }
-            }
-
-            // Mostrar error
-            function showError(message) {
-                moduleContent.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Error: ${message}
-                    </div>
-                    <button class="btn btn-primary mt-3" id="btnRetry">
-                        <i class="bi bi-arrow-clockwise"></i> Reintentar
-                    </button>
-                `;
-                
-                document.getElementById('btnRetry')?.addEventListener('click', function() {
-                    window.location.reload();
-                });
-            }
-
-            // Mostrar/ocultar loader
-            function showLoader() {
-                const loader = document.getElementById('tableLoader');
-                if (loader) loader.style.display = 'flex';
-            }
-            
-            function hideLoader() {
-                const loader = document.getElementById('tableLoader');
-                if (loader) loader.style.display = 'none';
-            }
-
-            // Actualizar botones de acciones según permisos
-            function updateActionButtons() {
-                const user = JSON.parse(localStorage.getItem('user')) || {};
-                const permisos = user.permisos || [];
-                
-                // Ejemplo: Verificar permisos para botones específicos
-                const btnNew = document.getElementById('btnNew');
-                const btnExport = document.getElementById('btnExport');
-                
-                // Aquí implementarías la lógica real basada en los permisos del usuario
-                // Por ejemplo, si el usuario no tiene permiso de creación, ocultar el botón Nuevo
-                if (btnNew) {
-                    btnNew.style.display = hasButtonPermission('create', permisos) ? 'inline-flex' : 'none';
-                }
-                
-                if (btnExport) {
-                    btnExport.style.display = hasButtonPermission('export', permisos) ? 'inline-flex' : 'none';
-                }
-            }
-            
-            // Verificar si el usuario tiene permiso para un botón específico
-            function hasButtonPermission(action, permisos) {
-                // Aquí implementarías la lógica para verificar permisos específicos
-                // Por ahora, simplemente devolvemos true para mostrar todos los botones
-                return true;
-            }
-
-            // Inicializar plugins de Bootstrap
-            function initBootstrapPlugins() {
-                // Tooltips
-                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                tooltipTriggerList.map(function(tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl);
-                });
-                
-                // Popovers
-                const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-                popoverTriggerList.map(function(popoverTriggerEl) {
-                    return new bootstrap.Popover(popoverTriggerEl);
-                });
-            }
-
-            // Ejecutar scripts de módulos cargados
-            function executeModuleScripts() {
-                const scripts = document.getElementById('moduleDetailsContainer')?.getElementsByTagName('script');
-                if (!scripts) return;
-                
-                for (let script of scripts) {
-                    try {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        
-                        for (let attr of script.attributes) {
-                            if (attr.name !== 'src') { // src ya se asignó arriba
-                                newScript.setAttribute(attr.name, attr.value);
-                            }
-                        }
-                        
-                        document.body.appendChild(newScript);
-                    } catch (error) {
-                        console.error('Error al ejecutar script del módulo:', error);
-                    }
-                }
-            }
-
-            // Mostrar notificación toast
-            function showToast(message, type = 'success') {
-                const toastContainer = document.querySelector('.toast-container');
-                const toastId = 'toast-' + Date.now();
-                
-                const toastHTML = `
-                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header ${type === 'success' ? 'bg-success text-white' : type === 'error' ? 'bg-danger text-white' : 'bg-primary text-white'}">
-                            <i class="bi ${type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
-                            <strong class="me-auto">${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Información'}</strong>
-                            <small>Ahora</small>
-                            <button type="button" class="btn-close ${type === 'success' || type === 'error' ? 'btn-close-white' : ''}" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                    </div>
-                `;
-                
-                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-                
-                const toastElement = document.getElementById(toastId);
-                const toast = new bootstrap.Toast(toastElement, {
-                    autohide: true,
-                    delay: 5000
-                });
-                
-                toast.show();
-                
-                // Eliminar el toast del DOM después de ocultarse
-                toastElement.addEventListener('hidden.bs.toast', function() {
-                    toastElement.remove();
-                });
-            }
-
-            // Event Listeners
-            toggleSidebar.addEventListener('click', function() {
-                sidebar.classList.toggle('sidebar-collapsed');
-                toggleIcon.classList.toggle('bi-chevron-left');
-                toggleIcon.classList.toggle('bi-chevron-right');
-            });
-
-            // Manejar clic en elementos del menú
-            document.addEventListener('click', function(e) {
-                const link = e.target.closest('[data-module]');
-                if (!link) return;
-                
-                e.preventDefault();
-                const modulePath = link.getAttribute('data-module');
-                const moduleTitleText = link.getAttribute('data-title') || link.textContent.trim();
-                
-                // Cargar el módulo
-                loadModuleContent(modulePath, moduleTitleText);
-                
-                // Marcar como activo en el menú
-                document.querySelectorAll('.nav-link').forEach(item => {
-                    item.classList.remove('active');
-                });
-                link.classList.add('active');
-                
-                // En dispositivos móviles, cerrar el sidebar
-                if (window.innerWidth < 768) {
-                    sidebar.classList.remove('show');
-                }
-            });
-
-            // Botón de cerrar sesión
-            logoutBtn.addEventListener('click', function() {
-                // Mostrar confirmación antes de cerrar sesión
-                if (confirm('¿Está seguro que desea cerrar la sesión?')) {
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('menu');
-                    localStorage.removeItem('token');
-                    window.location.href = './login.html';
-                }
-            });
-
-            // Manejar eventos popstate (navegación atrás/adelante)
-            window.addEventListener('popstate', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const moduleParam = urlParams.get('module');
-                
-                if (!moduleParam) {
-                    resetDashboard();
-                } else {
-                    loadModuleContent(moduleParam);
-                }
-            });
-
-            // Detectar clic en móviles para el sidebar
-            if (window.innerWidth < 768) {
-                toggleSidebar.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                });
-                
-                // Cerrar sidebar al hacer clic fuera de él
-                document.addEventListener('click', function(e) {
-                    if (!sidebar.contains(e.target) && e.target !== toggleSidebar && !toggleSidebar.contains(e.target)) {
-                        sidebar.classList.remove('show');
-                    }
-                });
-            }
-
-            // Ejemplo de datos para simulación de CRUD
-            function loadExampleData() {
-                // Solo se carga si hay una tabla en la página
-                const dataTable = document.getElementById('dataTable');
-                if (!dataTable) return;
-                
-                // Simular encabezados
-                const tableHeader = document.getElementById('tableHeader');
-                if (tableHeader) {
-                    tableHeader.innerHTML = `
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    `;
-                }
-                
-                // Simular datos
-                const tableBody = document.getElementById('tableBody');
-                if (tableBody) {
-                    // Limpiar tabla
-                    tableBody.innerHTML = '';
-                    
-                    // Generar datos de ejemplo
-                    for (let i = 1; i <= 10; i++) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${i}</td>
-                            <td>Elemento ${i}</td>
-                            <td>Descripción del elemento ${i}</td>
-                            <td><span class="badge ${i % 3 === 0 ? 'bg-danger' : i % 2 === 0 ? 'bg-warning' : 'bg-success'}">${i % 3 === 0 ? 'Inactivo' : i % 2 === 0 ? 'Pendiente' : 'Activo'}</span></td>
-                            <td>${new Date().toLocaleDateString()}</td>
-                            <td>
-                                <div class="crud-actions">
-                                    <button class="btn btn-sm btn-info" data-action="view" data-id="${i}" data-bs-toggle="tooltip" title="Ver detalles">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-primary" data-action="edit" data-id="${i}" data-bs-toggle="tooltip" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-action="delete" data-id="${i}" data-bs-toggle="tooltip" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-                    }
-                    
-                    // Actualizar contadores
-                    document.getElementById('currentRecords').textContent = '10';
-                    document.getElementById('totalRecords').textContent = '100';
-                    
-                    // Generar paginación
-                    const pagination = document.getElementById('pagination');
-                    if (pagination) {
-                        pagination.innerHTML = `
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Siguiente</a>
-                            </li>
-                        `;
-                    }
-                    
-                    // Inicializar tooltips para los botones
-                    initBootstrapPlugins();
-                    
-                    // Asignar eventos a los botones
-                    document.querySelectorAll('[data-action]').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const action = this.getAttribute('data-action');
-                            const id = this.getAttribute('data-id');
-                            
-                            switch(action) {
-                                case 'view':
-                                    showToast(`Visualizando registro #${id}`, 'info');
-                                    break;
-                                case 'edit':
-                                    showToast(`Editando registro #${id}`, 'info');
-                                    break;
-                                case 'delete':
-                                    if (confirm(`¿Está seguro que desea eliminar el registro #${id}?`)) {
-                                        showToast(`Registro #${id} eliminado correctamente`, 'success');
-                                    }
-                                    break;
-                                case 'create':
-                                    showToast('Creando nuevo registro', 'info');
-                                    break;
-                                case 'export':
-                                    showToast('Exportando datos a Excel...', 'info');
-                                    break;
-                            }
-                        });
-                    });
-                }
-            }
-
-            // Cargar datos de ejemplo cuando se carga un módulo
-            document.addEventListener('DOMNodeInserted', function(e) {
-                if (e.target.id === 'dataTable' || e.target.contains(document.getElementById('dataTable'))) {
-                    // Simular carga de datos
-                    setTimeout(() => {
-                        loadExampleData();
-                    }, 300);
-                }
-            });
-
-            // Detectar cambios en el input de búsqueda
-            document.addEventListener('input', function(e) {
-                if (e.target.id === 'searchInput') {
-                    // Simular búsqueda después de un delay
-                    clearTimeout(e.target.timer);
-                    e.target.timer = setTimeout(() => {
-                        const searchTerm = e.target.value.trim();
-                        if (searchTerm) {
-                            showToast(`Buscando: "${searchTerm}"`, 'info');
-                            showLoader();
-                            setTimeout(() => {
-                                hideLoader();
-                                loadExampleData(); // Recargar con los mismos datos de ejemplo
-                            }, 500);
-                        }
-                    }, 500);
-                }
-            });
-
-            // Escuchar el botón de búsqueda
-            document.addEventListener('click', function(e) {
-                if (e.target.id === 'btnSearch' || e.target.closest('#btnSearch')) {
-                    const searchInput = document.getElementById('searchInput');
-                    if (searchInput) {
-                        const searchTerm = searchInput.value.trim();
-                        if (searchTerm) {
-                            showToast(`Buscando: "${searchTerm}"`, 'info');
-                            showLoader();
-                            setTimeout(() => {
-                                hideLoader();
-                                loadExampleData(); // Recargar con los mismos datos de ejemplo
-                            }, 500);
-                        }
-                    }
-                }
-                
-                // Botón refrescar
-                if (e.target.id === 'btnRefresh' || e.target.closest('#btnRefresh')) {
-                    showToast('Actualizando datos...', 'info');
-                    showLoader();
-                    setTimeout(() => {
-                        hideLoader();
-                        loadExampleData();
-                    }, 500);
-                }
-            });
-
-            // Escuchar cambios en el selector de registros por página
-            document.addEventListener('change', function(e) {
-                if (e.target.id === 'recordsPerPage') {
-                    showToast(`Mostrando ${e.target.value} registros por página`, 'info');
-                    showLoader();
-                    setTimeout(() => {
-                        hideLoader();
-                        loadExampleData(); // Recargar con los mismos datos de ejemplo
-                    }, 500);
-                }
-            });
-        });
-    </script>
 
 <script>
-function buildModuleTree(modulos) {
-    const moduloMap = {};
-    const tree = [];
+document.addEventListener("DOMContentLoaded", function () {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const idPerfil = user?.idPerfil;
 
-    modulos.forEach(modulo => {
-        modulo.hijos = [];
-        moduloMap[modulo.idModulo] = modulo;
-    });
+  if (!idPerfil) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-    modulos.forEach(modulo => {
-        if (modulo.idModuloPadre) {
-            if (moduloMap[modulo.idModuloPadre]) {
-                moduloMap[modulo.idModuloPadre].hijos.push(modulo);
-            }
-        } else {
-            tree.push(modulo);
-        }
-    });
-
-    return tree;
-}
-
-// === Parte 1: Mejorar renderMenu para mostrar hasta 3 niveles ===
-function renderMenu(modulos, nivel = 1) {
-    let html = '<ul class="nav flex-column">';
-
-    modulos.forEach(modulo => {
-        if (!modulo.permiso.puedeConsultar) return;
-
-        const hasChildren = modulo.hijos && modulo.hijos.length > 0;
-        const submenuId = `submenu-${modulo.idModulo}`;
-
-        html += `
-            <li class="nav-item">
-                <a href="#" class="nav-link d-flex justify-content-between align-items-center"
-                   data-id="${modulo.idModulo}"
-                   ${hasChildren ? `data-bs-toggle="collapse" data-bs-target="#${submenuId}"` : ''}>
-                    <i class="bi ${modulo.icono} me-2"></i> ${modulo.nombreModulo}
-                    ${hasChildren ? '<i class="bi bi-chevron-down"></i>' : ''}
-                </a>
-                ${hasChildren ? `<div class="collapse ps-${nivel * 2}" id="${submenuId}">
-                    ${renderMenu(modulo.hijos, nivel + 1)}
-                </div>` : ''}
-            </li>
-        `;
-    });
-
-    html += '</ul>';
-    return html;
-}
-
-// === Parte 2: Evento click solo cuando NO tiene hijos ===
-document.addEventListener('click', function (e) {
-    const link = e.target.closest('a.nav-link');
-    if (!link) return;
-
-    const hasToggle = link.getAttribute('data-bs-toggle');
-    const idModulo = link.getAttribute('data-id');
-
-    // Si NO tiene hijos (es final), cargar la vista
-    if (!hasToggle && idModulo) {
-        e.preventDefault();
-        cargarVistaDelModulo(idModulo);
-    }
-});
-
-// === Parte 3: Cargar vista del módulo y permisos ===
-function cargarVistaDelModulo(idModulo) {
-    // Simulamos obtener la vista
-    fetch(`vistas/modulo-${idModulo}.html`)
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById('contenido').innerHTML = html;
-
-            // Luego pedimos permisos por separado
-            fetch(`api/permisos?idModulo=${idModulo}`)
-                .then(res => res.json())
-                .then(permiso => {
-                    if (!permiso.puedeAgregar) document.querySelector('.btn-agregar')?.classList.add('d-none');
-                    if (!permiso.puedeEditar) document.querySelectorAll('.btn-editar').forEach(b => b.classList.add('d-none'));
-                    if (!permiso.puedeEliminar) document.querySelectorAll('.btn-eliminar').forEach(b => b.classList.add('d-none'));
-                });
-        });
-}
-
-function mostrarBotonesSeguridad(modulos) {
-    const seguridad = modulos.find(m => m.idModulo === 2);
-    if (!seguridad) return;
-
-    if (!seguridad.permiso.puedeAgregar) {
-        document.getElementById('btnAgregar')?.style.setProperty('display', 'none', 'important');
-    }
-
-    if (!seguridad.permiso.puedeEditar) {
-        document.querySelectorAll('.btnEditar').forEach(btn => btn.style.setProperty('display', 'none', 'important'));
-    }
-
-    if (!seguridad.permiso.puedeEliminar) {
-        document.querySelectorAll('.btnEliminar').forEach(btn => btn.style.setProperty('display', 'none', 'important'));
-    }
-}
-
-fetch('https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=1')
+  fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${idPerfil}`)
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            const modulos = data.data;
-            const arbolModulos = buildModuleTree(modulos);
-            const menuHtml = renderMenu(arbolModulos);
-            document.getElementById('menu-lateral').innerHTML = menuHtml;
-            mostrarBotonesSeguridad(modulos);
-        }
-    });
-</script>
+      if (data.success) {
+        const modulos = data.data;
+        const map = {};
+        const tree = [];
 
-</body>
+        modulos.forEach(mod => {
+          const p = mod.permiso;
+          const visible = p.puedeConsultar || p.puedeAgregar || p.puedeEditar || p.puedeEliminar;
+          mod.hijos = [];
+          mod.visible = visible;
+          map[mod.idModulo] = mod;
+        });
+
+        modulos.forEach(mod => {
+          if (mod.idModuloPadre && map[mod.idModuloPadre]) {
+            map[mod.idModuloPadre].hijos.push(mod);
+          } else if (mod.visible) {
+            tree.push(mod);
+          }
+        });
+
+        const menuContainer = document.getElementById("menuContainer");
+        menuContainer.innerHTML = "";
+        renderTreeMenu(tree, menuContainer);
+      }
+    });
+
+  document.getElementById("btnCerrarSesion").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "login.html";
+  });
+});
+
+function renderTreeMenu(tree, container) {
+  tree.forEach(mod => {
+    if (!mod.visible) return;
+
+    const li = document.createElement('li');
+    li.className = 'nav-item';
+
+    const hasVisibleChildren = mod.hijos.some(h => h.visible);
+
+    if (hasVisibleChildren) {
+      const submenuId = `submenu-${mod.idModulo}`;
+      li.innerHTML = `
+        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
+           data-bs-target="#${submenuId}" aria-expanded="false" aria-controls="${submenuId}">
+          <i class="bi ${mod.icono || 'bi-folder'}"></i>
+          <span class="sidebar-text">${mod.nombreModulo}</span>
+        </a>
+        <ul class="submenu collapse list-unstyled" id="${submenuId}"></ul>
+      `;
+      container.appendChild(li);
+      const ul = li.querySelector('ul');
+      renderTreeMenu(mod.hijos, ul);
+    } else {
+      li.innerHTML = `
+        <a href="#" class="nav-link" data-module="${mod.ruta}" data-title="${mod.nombreModulo}" data-idmodulo="${mod.idModulo}">
+          <i class="bi ${mod.icono || 'bi-file-earmark'}"></i>
+          <span class="sidebar-text">${mod.nombreModulo}</span>
+        </a>
+      `;
+      container.appendChild(li);
+    }
+  });
+}
+
+function aplicarPermisosAlCRUD(idModulo) {
+  const perfil = JSON.parse(localStorage.getItem('user'))?.idPerfil;
+  fetch(`https://goldenrod-grouse-151833.hostingersite.com/modulos.php?idPerfil=${perfil}`)
+    .then(res => res.json())
+    .then(data => {
+      const mod = data.data.find(m => m.idModulo == idModulo);
+      if (!mod) return;
+      const p = mod.permiso;
+      if (!p.puedeAgregar) document.querySelector('#btnNew')?.classList.add('d-none');
+      if (!p.puedeEditar) document.querySelectorAll('[data-action="edit"]').forEach(b => b.classList.add('d-none'));
+      if (!p.puedeEliminar) document.querySelectorAll('[data-action="delete"]').forEach(b => b.classList.add('d-none'));
+      if (!p.puedeConsultar) document.getElementById('dataTable')?.classList.add('d-none');
+    });
+}
+</script></body>
 </html>
