@@ -21,7 +21,50 @@
             background-color: var(--light-color);
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.5 ease, color 0.5 ease;
         }
+
+        /* Estilos para modo oscuro */
+body.dark-mode {
+    --primary-color: #9bb1ff;
+    --secondary-color: #708ad4;
+    --dark-color: #f1f1f1;
+    --light-color: #1e1e2f;
+    background-color: var(--light-color);
+    color: var(--dark-color);
+}
+
+body.dark-mode .navbar {
+    background-color: #1a1a2e;
+    color: white;
+}
+
+body.dark-mode .navbar-brand,
+body.dark-mode .nav-link {
+    color: var(--primary-color);
+}
+
+body.dark-mode .nav-link:hover,
+body.dark-mode .nav-link.active {
+    color: var(--secondary-color);
+}
+
+body.dark-mode .login-form-container,
+body.dark-mode .login-box {
+    background-color: #2b2b3d;
+    color: white;
+}
+
+body.dark-mode .form-control {
+    background-color: #1e1e2f;
+    color: white;
+    border-color: #3e3e5e;
+}
+
+body.dark-mode .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(155, 177, 255, 0.25);
+}
         
         /* Navbar */
         .navbar {
@@ -313,6 +356,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/public/app/views/Perfiles/login.html"><i class="bi bi-box-arrow-in-right"></i> Login Modulos</a>
                     </li>
+                    <li>
+                        <button id="toggle-dark-mode" class="btn btn-outline-secundary ms-2">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -446,5 +494,24 @@
             });
         });
     </script>
+    <script>
+        const toggleBtn = document.getElementById('toggle-dark-mode');
+        const body = document.body;
+    
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+    
+            // Cambiar icono del botón (luna/sol)
+            const icon = toggleBtn.querySelector('i');
+            if (body.classList.contains('dark-mode')) {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+            }
+        });
+    </script>
+    
 </body>
 </html>
